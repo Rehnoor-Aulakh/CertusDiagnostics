@@ -1,0 +1,58 @@
+services:
+  client:
+    env_file:
+      - .env
+    build:
+      context: ./Certus-Client
+    container_name: certus-client
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./Certus-Client:/app
+      - /app/node_modules
+  admin:
+    env_file:
+      - .env
+    build:
+      context: ./Certus-Admin
+    container_name: certus-admin
+    ports:
+      - "5174:5174"
+    depends_on:
+      - backend
+    volumes:
+      - ./Certus-Admin:/app
+      - /app/node_modules
+  backend:
+    env_file:
+      - .env
+    build:
+      context: ./Certus-Backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/certus
+      DB_USERNAME: postgres
+      DB_PASSWORD: 1234
+    container_name: certus-backend
+    depends_on:
+      - postgres
+    volumes:
+      - ./uploads:/app/uploads
+  postgres:
+    image: postgres:17
+    container_name: certus-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: certus
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:
