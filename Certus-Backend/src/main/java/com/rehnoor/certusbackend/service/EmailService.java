@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Service
@@ -20,8 +21,11 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    @Value("${SUPER_ADMIN_EMAIL:${super_admin_email:${app.superadmin.email:}}}")
+    @Value("${app.superadmin.email}")
     private String superAdminEmail;
+
+    @Value("${spring.mail.username}")
+    private String mailUsername;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -39,6 +43,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            helper.setFrom(mailUsername, "Certus Diagnostics");
             helper.setTo(superAdminEmail);
             helper.setSubject("\uD83D\uDEA8 Action Required: New Admin Access Request");
 
@@ -72,6 +77,7 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(mailUsername, "Certus Diagnostics");
             helper.setTo(patient.getEmail());
             helper.setSubject("Your Diagnostic Report is Ready – Certus Diagnostics");
 
