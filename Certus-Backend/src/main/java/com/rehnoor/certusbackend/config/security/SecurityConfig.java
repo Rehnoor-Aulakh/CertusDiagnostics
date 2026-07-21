@@ -42,14 +42,15 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     // 4. Configure cross origin resource sharing (CORS) to accept requests from both frontends
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
-        // Explicitly authorize both local and production URLs for Patient and Admin React setups
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:5173", "http://localhost:5174")
-        );
+        // Explicitly authorize configured URLs
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
         configuration.setAllowCredentials(true);    // Permits cookies, session tokens, or Auth headers

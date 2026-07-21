@@ -6,14 +6,9 @@ services:
       context: ./Certus-Client
     container_name: certus-client
     restart: unless-stopped
-    ports:
-      - "5173:5173"
     depends_on:
       - backend
-    # Volumes removed for production to use built image
-    # volumes:
-    #   - ./Certus-Client:/app
-    #   - /app/node_modules
+
   admin:
     env_file:
       - .env
@@ -21,21 +16,14 @@ services:
       context: ./Certus-Admin
     container_name: certus-admin
     restart: unless-stopped
-    ports:
-      - "5174:5174"
     depends_on:
       - backend
-    # Volumes removed for production to use built image
-    # volumes:
-    #   - ./Certus-Admin:/app
-    #   - /app/node_modules
+
   backend:
     env_file:
       - .env
     build:
       context: ./Certus-Backend
-    ports:
-      - "8080:8080"
     restart: unless-stopped
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-certus}
@@ -48,6 +36,7 @@ services:
         condition: service_healthy
     volumes:
       - ./uploads:/app/uploads
+
   postgres:
     image: postgres:17
     container_name: certus-postgres
@@ -56,8 +45,6 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-certus}
-    ports:
-      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database:/docker-entrypoint-initdb.d
