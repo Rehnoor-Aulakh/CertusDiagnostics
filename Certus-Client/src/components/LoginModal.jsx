@@ -72,7 +72,7 @@ export default function LoginModal({ onClose }) {
         phone: userInfo.phone_number || userInfo.phone || "",
       };
 
-      const response = await fetch(`${API_BASE_URL}/google-auth.php`, {
+      const response = await fetch(`${API_BASE_URL}/auth/google-login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
