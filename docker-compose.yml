@@ -1,7 +1,5 @@
 services:
   client:
-    env_file:
-      - .env
     build:
       context: ./Certus-Client
     container_name: certus-client
@@ -10,8 +8,6 @@ services:
       - backend
 
   admin:
-    env_file:
-      - .env
     build:
       context: ./Certus-Admin
     container_name: certus-admin
