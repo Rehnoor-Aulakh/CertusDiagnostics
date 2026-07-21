@@ -23,8 +23,14 @@ public class EmailService {
     @Value("${SUPER_ADMIN_EMAIL:${super_admin_email:${app.superadmin.email:}}}")
     private String superAdminEmail;
 
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    @Value("${app.client-url}")
+    private String clientUrl;
+
     public void sendAdminApprovalEmail(String applicantName, String applicantEmail, String token) {
-        String baseServerUrl = "http://localhost:8080/api/v1/auth/admin/request";
+        String baseServerUrl = baseUrl + "/api/v1/auth/admin/request";
 
         String approveUrl = baseServerUrl + "?action=approve&token=" + token;
         String rejectUrl = baseServerUrl + "?action=reject&token=" + token;
@@ -242,11 +248,11 @@ public class EmailService {
 
             }
 
-            html.append("""
+            html.append(String.format("""
 
                     <div style="text-align:center;margin:45px 0;">
 
-                    <a href="http://localhost:5173/sign-in"
+                    <a href="%s/sign-in"
 
                     style="
                     background:#1565C0;
@@ -324,7 +330,7 @@ public class EmailService {
 
                     </body>
                     </html>
-                    """);
+                    """, clientUrl));
 
             helper.setText(html.toString(), true);
             helper.addAttachment(pdfFile.getName(), pdfFile);
