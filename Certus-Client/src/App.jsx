@@ -13,6 +13,7 @@ import { useAuth } from "./contexts/AuthContext";
 import Home from "./pages/Home";
 import BookATest from "./pages/BookATest";
 import YourReports from "./pages/YourReports";
+import HealthHistory from "./pages/HealthHistory";
 import SignIn from "./pages/SignIn";
 import ContactUs from "./pages/ContactUs";
 import Dashboard from "./pages/Dashboard";
@@ -73,6 +74,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/book-a-test" element={<BookATest />} />
             <Route path="/your-reports" element={<YourReports />} />
+            <Route path="/health-history" element={<HealthHistory />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/dashboard" element={<Dashboard />} />

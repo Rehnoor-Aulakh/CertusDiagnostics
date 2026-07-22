@@ -64,6 +64,12 @@ export default function Header() {
             Your Reports
           </Link>
           <Link
+            to="/health-history"
+            className="text-gray-300 hover:text-white transition-colors"
+          >
+            Health History
+          </Link>
+          <Link
             to="/contact-us"
             className="text-gray-300 hover:text-white transition-colors"
           >
@@ -161,6 +167,13 @@ export default function Header() {
             onClick={() => setIsMenuOpen(false)}
           >
             Your Reports
+          </Link>
+          <Link
+            to="/health-history"
+            className="block text-gray-300 hover:text-white transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Health History
           </Link>
           <Link
             to="/contact-us"
