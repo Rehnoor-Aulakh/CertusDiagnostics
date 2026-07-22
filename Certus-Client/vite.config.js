@@ -7,6 +7,16 @@ export default defineConfig({
   server: {
     host: "0.0.0.0", // Expose to network
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://backend:8080',
+        changeOrigin: true
+      },
+      '/uploads': {
+        target: 'http://backend:8080',
+        changeOrigin: true
+      }
+    }
   },
   optimizeDeps: {
     exclude: ["fsevents"],

@@ -1,27 +1,41 @@
 services:
   client:
     build:
+      context: ./Certus-Client
       target: builder
-    command: ["npm", "run", "dev", "--", "--host"]
+    command: npm run dev -- --host 0.0.0.0
     ports:
       - "5173:5173"
     volumes:
-      - ./Certus-Client:/app
-      - /app/node_modules
+      - ./Certus-Client/src:/app/src
+      - ./Certus-Client/public:/app/public
+      - ./Certus-Client/index.html:/app/index.html
+      - ./Certus-Client/vite.config.js:/app/vite.config.js
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
   admin:
     build:
+      context: ./Certus-Admin
       target: builder
-    command: ["npm", "run", "dev", "--", "--host"]
+    command: npm run dev -- --host 0.0.0.0
     ports:
       - "5174:5174"
     volumes:
-      - ./Certus-Admin:/app
-      - /app/node_modules
+      - ./Certus-Admin/src:/app/src
+      - ./Certus-Admin/public:/app/public
+      - ./Certus-Admin/index.html:/app/index.html
+      - ./Certus-Admin/vite.config.js:/app/vite.config.js
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
   backend:
     ports:
       - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${APP_ENV:-development}
+      - APP_BASE_URL=http://localhost:5174
+      - APP_CLIENT_URL=http://localhost:5173
 
   postgres:
     ports:

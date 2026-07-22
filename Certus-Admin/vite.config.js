@@ -7,5 +7,15 @@ export default defineConfig({
   server: {
     port: 5174, // Fixed port for admin panel
     host: true,
+    proxy: {
+      '/api': {
+        target: 'http://backend:8080',
+        changeOrigin: true
+      },
+      '/uploads': {
+        target: 'http://backend:8080',
+        changeOrigin: true
+      }
+    }
   },
 });
