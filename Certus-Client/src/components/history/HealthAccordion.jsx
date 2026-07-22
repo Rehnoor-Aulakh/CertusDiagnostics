@@ -46,7 +46,7 @@ function HealthTimelineTable({ timeline, unit }) {
 
 function HealthAccordionRow({ test }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const latestPoint = test.timeline[0];
+  const latestPoint = test.timeline[test.timeline.length - 1];
 
   return (
     <div className="border-b border-white/5 last:border-0">

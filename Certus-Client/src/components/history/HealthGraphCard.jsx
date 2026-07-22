@@ -60,9 +60,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function HealthGraphCard({ test }) {
   if (!test) return null;
 
-  const data = [...test.timeline].reverse(); // oldest to newest for chart (X axis left to right)
+  const data = [...test.timeline]; // Ensure chart plots oldest to newest (left to right)
   const isSinglePoint = data.length === 1;
-  const latestPoint = test.timeline[0]; // test.timeline is originally newest first
+  const latestPoint = test.timeline[test.timeline.length - 1]; // test.timeline is oldest first
 
   const statusConfig = statusColors[test.status];
 
