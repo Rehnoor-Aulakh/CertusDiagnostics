@@ -190,10 +190,10 @@ public class AuthController {
             }
             // Patient pipeline
             else {
-                Optional<Patient> patientOpt = patientRepository.findByGoogleId(data.getGoogle_id());
+                Optional<Patient> patientOpt = patientRepository.findByEmailIgnoreCase(userEmail);
 
                 if (patientOpt.isEmpty()) {
-                    patientOpt = patientRepository.findByEmailIgnoreCase(userEmail);
+                    patientOpt = patientRepository.findByGoogleId(data.getGoogle_id());
                 }
 
                 Patient patient;
