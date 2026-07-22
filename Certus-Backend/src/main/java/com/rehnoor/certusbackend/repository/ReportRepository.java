@@ -60,4 +60,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByPatientIdOrderByReportDateDesc(Patient patient);
 
     List<Report> findByPatientIdOrderByReportDateAsc(Patient patient);
+
+    List<Report> findByPatientId_EmailIgnoreCaseOrderByReportDateDesc(String email);
+
+    List<Report> findByPatientId_EmailIgnoreCaseOrderByReportDateAsc(String email);
 }

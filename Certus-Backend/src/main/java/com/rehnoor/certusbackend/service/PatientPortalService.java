@@ -44,8 +44,7 @@ public class PatientPortalService {
     }
 
     public List<Map<String, Object>> getReportSummaries(String email) {
-        Patient patient = getPatientByEmail(email);
-        List<Report> reports = reportRepository.findByPatientIdOrderByReportDateDesc(patient);
+        List<Report> reports = reportRepository.findByPatientId_EmailIgnoreCaseOrderByReportDateDesc(email);
 
         return reports.stream().map(r -> {
             Map<String, Object> map = new HashMap<>();
@@ -117,7 +116,6 @@ public class PatientPortalService {
     }
 
     public HealthHistoryResponse getHealthHistory(String email){
-        Patient patient = getPatientByEmail(email);
-        return healthHistoryService.buildHistory(patient);
+        return healthHistoryService.buildHistory(email);
     }
 }

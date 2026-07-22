@@ -35,8 +35,8 @@ public class HealthHistoryService {
         boolean upperInclusive;
     }
 
-    public HealthHistoryResponse buildHistory(Patient patient){
-        List<Report> reports = reportRepository.findByPatientIdOrderByReportDateAsc(patient);
+    public HealthHistoryResponse buildHistory(String email){
+        List<Report> reports = reportRepository.findByPatientId_EmailIgnoreCaseOrderByReportDateAsc(email);
         Map<String, TestHistoryDTO> groupedTests = groupTests(reports);
         // get the statuses for the grouped tests
         for(TestHistoryDTO timeline: groupedTests.values()){
