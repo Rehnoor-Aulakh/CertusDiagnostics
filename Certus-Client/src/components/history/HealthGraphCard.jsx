@@ -7,6 +7,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceArea,
+  ReferenceLine
 } from "recharts";
 import HealthStatusBadge, { statusColors } from "./HealthStatusBadge";
 
@@ -63,6 +65,29 @@ export default function HealthGraphCard({ test }) {
   const latestPoint = test.timeline[0]; // test.timeline is originally newest first
 
   const statusConfig = statusColors[test.status];
+
+  // Parse reference range for graph highlighting
+  let refMin = null;
+  let refMax = null;
+
+  if (test.referenceRange && test.referenceRange !== 'N/A') {
+    const str = test.referenceRange.replace(/,/g, '');
+    const minMaxMatch = str.match(/([\d.]+)\s*-\s*([\d.]+)/);
+    const lessMatch = str.match(/<\s*([\d.]+)/);
+    const greaterMatch = str.match(/>\s*([\d.]+)/);
+
+    if (minMaxMatch) {
+      refMin = parseFloat(minMaxMatch[1]);
+      refMax = parseFloat(minMaxMatch[2]);
+    } else if (lessMatch) {
+      refMin = 0;
+      refMax = parseFloat(lessMatch[1]);
+    } else if (greaterMatch) {
+      refMin = parseFloat(greaterMatch[1]);
+      // Use a sufficiently large number to act as infinity for the chart
+      refMax = refMin * 10;
+    }
+  }
 
   // Helper to format date for X Axis ticks
   const formatXAxis = (tickItem) => {
@@ -129,6 +154,25 @@ export default function HealthGraphCard({ test }) {
                 domain={['auto', 'auto']}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#4b5563', strokeWidth: 1, strokeDasharray: '3 3' }} />
+              {refMin !== null && refMax !== null && (
+                <>
+                  <ReferenceArea y1={refMin} y2={refMax} fill="#10b981" fillOpacity={0.1} />
+                  <ReferenceLine 
+                    y={refMax} 
+                    stroke="#10b981" 
+                    strokeDasharray="3 3" 
+                    label={{ position: 'insideTopLeft', value: 'Safe Max', fill: '#10b981', fontSize: 12, fontWeight: 500 }} 
+                  />
+                  {refMin > 0 && (
+                    <ReferenceLine 
+                      y={refMin} 
+                      stroke="#10b981" 
+                      strokeDasharray="3 3" 
+                      label={{ position: 'insideBottomLeft', value: 'Safe Min', fill: '#10b981', fontSize: 12, fontWeight: 500 }} 
+                    />
+                  )}
+                </>
+              )}
               <Line
                 type="monotone"
                 dataKey="value"
