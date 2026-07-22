@@ -2,6 +2,7 @@ package com.rehnoor.certusbackend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rehnoor.certusbackend.dto.history.HealthHistoryResponse;
 import com.rehnoor.certusbackend.model.Patient;
 import com.rehnoor.certusbackend.model.Report;
 import com.rehnoor.certusbackend.repository.PatientRepository;
@@ -30,6 +31,9 @@ public class PatientPortalService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private HealthHistoryService healthHistoryService;
 
     @Value("${app.upload.directory}")
     private String uploadDirectory;
@@ -110,5 +114,10 @@ public class PatientPortalService {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
         return report.getReportLocation();
+    }
+
+    public HealthHistoryResponse getHealthHistory(String email){
+        Patient patient = getPatientByEmail(email);
+        return healthHistoryService.buildHistory(patient);
     }
 }

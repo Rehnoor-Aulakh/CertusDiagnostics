@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { API_BASE_URL } from "../config/api";
 import ReportDetails from "../components/ReportDetails";
+import { data } from "autoprefixer";
 
 export default function YourReports() {
   const { isLoggedIn, user, loading } = useAuth();
@@ -19,6 +20,31 @@ export default function YourReports() {
     }
   }, [isLoggedIn, loading, navigate]);
 
+  useEffect(() => {
+    console.log("History useEffect executed");
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/patient/history`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        console.log("Status:", response.status);
+
+        const data = await response.json();
+
+        console.log("History Response:", data);
+      } catch (error) {
+        console.error("History fetch failed:", error);
+      }
+    };
+
+    if (user?.token) {
+      fetchHistory();
+    }
+  }, [user?.token]);
+
   const fetchUserReports = useCallback(async () => {
     setIsLoadingReports(true);
     try {
@@ -26,7 +52,7 @@ export default function YourReports() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${user.token}`,
+          Authorization: `Bearer ${user.token}`,
         },
       });
 
@@ -68,7 +94,11 @@ export default function YourReports() {
   if (loading) {
     return (
       <div className="min-h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-        <LoadingSpinner size="large" color="white" text="Checking authentication..." />
+        <LoadingSpinner
+          size="large"
+          color="white"
+          text="Checking authentication..."
+        />
       </div>
     );
   }
@@ -77,7 +107,11 @@ export default function YourReports() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-        <LoadingSpinner size="large" color="white" text="Redirecting to sign in..." />
+        <LoadingSpinner
+          size="large"
+          color="white"
+          text="Redirecting to sign in..."
+        />
       </div>
     );
   }
@@ -89,7 +123,10 @@ export default function YourReports() {
 
       <div className="relative z-10 container mx-auto px-4 py-12">
         {selectedReportId ? (
-          <ReportDetails reportId={selectedReportId} onBack={() => setSelectedReportId(null)} />
+          <ReportDetails
+            reportId={selectedReportId}
+            onBack={() => setSelectedReportId(null)}
+          />
         ) : (
           <>
             {/* Header */}
@@ -105,14 +142,22 @@ export default function YourReports() {
             {/* Reports Section */}
             {isLoadingReports ? (
               <div className="flex items-center justify-center py-12">
-                <LoadingSpinner size="large" color="white" text="Loading your reports..." />
+                <LoadingSpinner
+                  size="large"
+                  color="white"
+                  text="Loading your reports..."
+                />
               </div>
             ) : (
               <div className="max-w-4xl mx-auto">
                 {reports.length === 0 ? (
                   <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20 text-center">
-                    <div className="text-gray-300 text-lg mb-4">No reports found</div>
-                    <p className="text-gray-400">Your test reports will appear here once they are ready.</p>
+                    <div className="text-gray-300 text-lg mb-4">
+                      No reports found
+                    </div>
+                    <p className="text-gray-400">
+                      Your test reports will appear here once they are ready.
+                    </p>
                   </div>
                 ) : (
                   <div className="grid gap-6">
@@ -123,18 +168,24 @@ export default function YourReports() {
                       >
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                           <div className="mb-4 md:mb-0">
-                            <h3 className="text-xl font-semibold text-white mb-2">{report.test_name}</h3>
+                            <h3 className="text-xl font-semibold text-white mb-2">
+                              {report.test_name}
+                            </h3>
                             <div className="text-gray-300 space-y-1">
-                              <p>Date: {new Date(report.date).toLocaleDateString()}</p>
+                              <p>
+                                Date:{" "}
+                                {new Date(report.date).toLocaleDateString()}
+                              </p>
                               <div className="flex items-center">
                                 <span className="mr-2">Status:</span>
                                 <span
-                                  className={`px-3 py-1 rounded-full text-sm font-medium ${report.status === "Ready"
+                                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                    report.status === "Ready"
                                       ? "bg-green-600 text-green-100"
                                       : report.status === "Pending"
                                         ? "bg-orange-600 text-orange-100"
                                         : "bg-yellow-600 text-yellow-100"
-                                    }`}
+                                  }`}
                                 >
                                   {report.status}
                                 </span>
@@ -150,7 +201,9 @@ export default function YourReports() {
                                 View Report
                               </button>
                             ) : (
-                              <span className="text-gray-400 px-6 py-2">Report pending...</span>
+                              <span className="text-gray-400 px-6 py-2">
+                                Report pending...
+                              </span>
                             )}
                           </div>
                         </div>
