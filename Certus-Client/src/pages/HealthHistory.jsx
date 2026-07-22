@@ -107,12 +107,16 @@ export default function HealthHistory() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
-        <div className="animate-pulse space-y-6">
-          <div className="h-48 bg-white/5 rounded-2xl"></div>
-          <div className="h-16 bg-white/5 rounded-xl"></div>
-          <div className="h-80 bg-white/5 rounded-2xl"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+        {/* Subtle Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICAgICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDIpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgogICAgPC9zdmc+')] opacity-30"></div>
+        <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
+          <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
+          <div className="animate-pulse space-y-6">
+            <div className="h-48 bg-white/5 rounded-2xl"></div>
+            <div className="h-16 bg-white/5 rounded-xl"></div>
+            <div className="h-80 bg-white/5 rounded-2xl"></div>
+          </div>
         </div>
       </div>
     );
@@ -120,17 +124,21 @@ export default function HealthHistory() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
-        <div className="bg-red-500/10 border border-red-500/50 rounded-2xl p-8 text-center glass-card flex flex-col items-center">
-          <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">{error}</h2>
-          <button
-            onClick={fetchHistory}
-            className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Retry
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+        {/* Subtle Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICAgICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDIpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgogICAgPC9zdmc+')] opacity-30"></div>
+        <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
+          <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
+          <div className="bg-red-500/10 border border-red-500/50 rounded-2xl p-8 text-center glass-card flex flex-col items-center">
+            <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-2">{error}</h2>
+            <button
+              onClick={fetchHistory}
+              className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -138,46 +146,55 @@ export default function HealthHistory() {
 
   if (!historyData || (historyData.graphs.length === 0 && !historyData.summary)) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
-        <div className="bg-white/5 rounded-2xl p-12 text-center glass-card flex flex-col items-center">
-          <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4 opacity-50" />
-          <h2 className="text-2xl font-bold text-white mb-2">No health history available yet.</h2>
-          <p className="text-gray-400">Upload more reports to begin tracking trends.</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+        {/* Subtle Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICAgICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDIpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgogICAgPC9zdmc+')] opacity-30"></div>
+        <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
+          <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
+          <div className="bg-white/5 rounded-2xl p-12 text-center glass-card flex flex-col items-center">
+            <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4 opacity-50" />
+            <h2 className="text-2xl font-bold text-white mb-2">No health history available yet.</h2>
+            <p className="text-gray-400">Upload more reports to begin tracking trends.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
-      <h1 className="text-3xl font-bold text-white">Health History Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+      {/* Subtle Pattern Overlay */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICAgICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDIpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgogICAgPC9zdmc+')] opacity-30"></div>
+      
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl space-y-8">
+        <h1 className="text-3xl font-bold text-white">Health History Dashboard</h1>
 
-      {historyData.summary && (
-        <HealthSummaryCard summary={historyData.summary} />
-      )}
+        {historyData.summary && (
+          <HealthSummaryCard summary={historyData.summary} />
+        )}
 
-      <HealthFilterBar
-        timeFilter={timeFilter}
-        setTimeFilter={setTimeFilter}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-      />
+        <HealthFilterBar
+          timeFilter={timeFilter}
+          setTimeFilter={setTimeFilter}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
 
-      {filteredTests.length === 0 ? (
-        <div className="bg-white/5 rounded-2xl p-12 text-center glass-card mt-8 flex flex-col items-center">
-          <Search className="w-12 h-12 text-gray-400 mx-auto mb-4 opacity-50" />
-          <h2 className="text-xl font-semibold text-white mb-2">No matching tests found.</h2>
-          <p className="text-gray-400">Try adjusting your filters or search query.</p>
-        </div>
-      ) : (
-        <>
-          <HealthGraphCarousel tests={filteredTests} timeFilter={timeFilter} />
-          <HealthAccordion tests={filteredTests} />
-        </>
-      )}
+        {filteredTests.length === 0 ? (
+          <div className="bg-white/5 rounded-2xl p-12 text-center glass-card mt-8 flex flex-col items-center">
+            <Search className="w-12 h-12 text-gray-400 mx-auto mb-4 opacity-50" />
+            <h2 className="text-xl font-semibold text-white mb-2">No matching tests found.</h2>
+            <p className="text-gray-400">Try adjusting your filters or search query.</p>
+          </div>
+        ) : (
+          <>
+            <HealthGraphCarousel tests={filteredTests} timeFilter={timeFilter} />
+            <HealthAccordion tests={filteredTests} />
+          </>
+        )}
+      </div>
     </div>
   );
 }
