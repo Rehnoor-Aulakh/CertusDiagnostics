@@ -86,7 +86,9 @@ public class ReportIngestionService {
         DiagnosticReport diagnosticReport = extractReport(pdfFile);
         DiagnosticMetadata metadata = diagnosticReport.getMetadata();
 
-        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank()) throw new com.rehnoor.certusbackend.exception.ReportParsingException("Unable to extract patient information from PDF.");
+        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank())
+            throw new com.rehnoor.certusbackend.exception.ReportParsingException(
+                    "Unable to extract patient information from PDF.");
         String cleanedRealName = metadata.getPatientName().trim();
 
         Optional<Long> existingFakeId = identityMappingRepository.findFakeIdByRealName(cleanedRealName);
@@ -113,7 +115,8 @@ public class ReportIngestionService {
             LocalDate inferredBirthYear = LocalDate.of(currentYear - detectedAge, 1, 1);
             patient.setDob(inferredBirthYear);
 
-            String fakeFirstName = (mappedGender == Patient.Gender.Female) ? faker.name().femaleFirstName() : faker.name().firstName();
+            String fakeFirstName = (mappedGender == Patient.Gender.Female) ? faker.name().femaleFirstName()
+                    : faker.name().firstName();
             String fakeLastName = faker.name().lastName();
             String fullFakeName = fakeFirstName + " " + fakeLastName;
             patient.setName(fullFakeName);
@@ -138,7 +141,9 @@ public class ReportIngestionService {
         DiagnosticReport diagnosticReport = extractReport(pdfFile);
         DiagnosticMetadata metadata = diagnosticReport.getMetadata();
 
-        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank()) throw new com.rehnoor.certusbackend.exception.ReportParsingException("Unable to extract patient information from PDF.");
+        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank())
+            throw new com.rehnoor.certusbackend.exception.ReportParsingException(
+                    "Unable to extract patient information from PDF.");
 
         String realName = metadata.getPatientName().trim();
 
@@ -167,10 +172,10 @@ public class ReportIngestionService {
             int detectedAge = metadata.getAge() != null ? metadata.getAge() : 30;
             int currentYear = LocalDate.now().getYear();
             patient.setDob(LocalDate.of(currentYear - detectedAge, 1, 1));
-            
+
             String cleanEmail = realName.toLowerCase().replaceAll("\\s+", "") + "@gmail.com";
             patient.setEmail(cleanEmail);
-            
+
             patient.setPhone(null);
 
             patient = patientRepository.save(patient);
@@ -183,7 +188,8 @@ public class ReportIngestionService {
 
     // This is the method that our report upload controller will call
     @Transactional
-    public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, String email, String phone) throws IOException{
+    public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, String email, String phone)
+            throws IOException {
         if (multipartFile.isEmpty()) {
             throw new com.rehnoor.certusbackend.exception.InvalidPdfException("Empty file.");
         }
@@ -203,17 +209,21 @@ public class ReportIngestionService {
         DiagnosticReport diagnosticReport = extractReport(pdfFile);
         DiagnosticMetadata metadata = diagnosticReport.getMetadata();
 
-        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank())  throw new com.rehnoor.certusbackend.exception.ReportParsingException("Unable to extract patient information from PDF.");
+        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank())
+            throw new com.rehnoor.certusbackend.exception.ReportParsingException(
+                    "Unable to extract patient information from PDF.");
 
-        Patient patient = patientRepository.findByEmailIgnoreCase(email).orElseGet(()-> createPatient(metadata, email, phone));
+        Patient patient = patientRepository.findByEmailIgnoreCase(email)
+                .orElseGet(() -> createPatient(metadata, email, phone));
 
         Report savedReport = saveReport(pdfFile, diagnosticReport, patient);
         System.out.println("Real Data Ingestion Successful: " + pdfFile.getName() + " -> " + patient.getName());
         emailService.sendReportUploadedEmail(patient, savedReport, pdfFile, diagnosticReport);
         return savedReport.getReportId();
     }
+
     @Transactional
-    public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, Long patientId) throws IOException{
+    public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, Long patientId) throws IOException {
         if (multipartFile.isEmpty()) {
             throw new com.rehnoor.certusbackend.exception.InvalidPdfException("Empty file.");
         }
@@ -231,8 +241,9 @@ public class ReportIngestionService {
         File pdfFile = destination.toFile();
 
         DiagnosticReport diagnosticReport = extractReport(pdfFile);
-        
-        Patient patient = patientRepository.findById(patientId).orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         Report savedReport = saveReport(pdfFile, diagnosticReport, patient);
         System.out.println("Real Data Ingestion Successful: " + pdfFile.getName() + " -> " + patient.getName());
@@ -241,8 +252,9 @@ public class ReportIngestionService {
     }
 
     @Transactional(readOnly = true)
-    public ReportResponse getReport(Long reportId, boolean detailed) throws JsonProcessingException{
-        Report report = reportRepository.findById(reportId).orElseThrow(() -> new ResourceNotFoundException("Report not found with id: "+ reportId));
+    public ReportResponse getReport(Long reportId, boolean detailed) throws JsonProcessingException {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Report not found with id: " + reportId));
 
         ReportResponse response = new ReportResponse();
         response.setReportId(report.getReportId());
@@ -266,8 +278,12 @@ public class ReportIngestionService {
         response.setSampleReceivedOn(report.getSampleReceivedOn());
         response.setReportReleasedOn(report.getReportReleasedOn());
 
-        List<TestResult> testsList = objectMapper.readValue(report.getTestsData(), new TypeReference<List<TestResult>>() {});
-        List<TestResult> abnormalList = objectMapper.readValue(report.getAbnormalData(), new TypeReference<List<TestResult>>() {});
+        List<TestResult> testsList = objectMapper.readValue(report.getTestsData(),
+                new TypeReference<List<TestResult>>() {
+                });
+        List<TestResult> abnormalList = objectMapper.readValue(report.getAbnormalData(),
+                new TypeReference<List<TestResult>>() {
+                });
 
         if (!detailed) {
             if (testsList != null) {
@@ -283,18 +299,18 @@ public class ReportIngestionService {
                 });
             }
         }
-        
+
         response.setTests(testsList);
         response.setAbnormal(abnormalList);
-        
+
         int totalTestsCount = testsList != null ? testsList.size() : 0;
         int abnormalTestsCount = abnormalList != null ? abnormalList.size() : 0;
         response.setSummary(new ReportResponse.Summary(totalTestsCount, abnormalTestsCount));
-        
+
         return response;
     }
 
-    private Patient createPatient(DiagnosticMetadata metadata, String email, String phone){
+    private Patient createPatient(DiagnosticMetadata metadata, String email, String phone) {
         Patient patient = new Patient();
         patient.setPassword("");
         String realName = metadata.getPatientName().trim();
@@ -327,11 +343,12 @@ public class ReportIngestionService {
 
         Report report = new Report();
         report.setPatientId(patient);
-        
+
         String pkgName = metadata.getPackageName();
         report.setTestName(pkgName != null && !pkgName.isBlank() ? pkgName.trim() : "Diagnostic Assessment Profile");
-        
-        report.setPrice(metadata.getAmountCollected() != null ? metadata.getAmountCollected() : java.math.BigDecimal.ZERO);
+
+        report.setPrice(
+                metadata.getAmountCollected() != null ? metadata.getAmountCollected() : java.math.BigDecimal.ZERO);
         report.setReportLocation(pdfFile.getName());
 
         ZoneId defaultZone = ZoneId.of("Asia/Kolkata");
@@ -351,12 +368,11 @@ public class ReportIngestionService {
 
         report.setReportStatus(Report.ReportStatus.COMPLETED);
 
-
         report.setTestsIncluded(objectMapper.writeValueAsString(diagnosticReport.getTestsIncluded()));
         report.setTestsData(objectMapper.writeValueAsString(diagnosticReport.getTests()));
         report.setAbnormalData(objectMapper.writeValueAsString(diagnosticReport.getAbnormalTests()));
         report.generateReportHash();
-        if(reportRepository.existsByReportHash(report.getReportHash())){
+        if (reportRepository.existsByReportHash(report.getReportHash())) {
             throw new DuplicateReportException("This diagnostic report has already been uploaded");
         }
         return reportRepository.save(report);
