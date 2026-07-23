@@ -8,11 +8,22 @@ import { useNavigate } from "react-router-dom";
 
 export default function Patients() {
   const navigate = useNavigate();
-  const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [patients, setPatients] = useState(() => {
+    const saved = sessionStorage.getItem("adminPatientsData");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [loading, setLoading] = useState(() => {
+    return sessionStorage.getItem("adminPatientsData") ? false : true;
+  });
   const [error, setError] = useState(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTermState] = useState(() => {
+    return sessionStorage.getItem("adminPatientsSearch") || "";
+  });
+  const setSearchTerm = (val) => {
+    sessionStorage.setItem("adminPatientsSearch", val);
+    setSearchTermState(val);
+  };
   const [notification, setNotification] = useState(null);
 
   // Helper function to format date from yyyy-mm-dd to dd-mm-yyyy
@@ -45,7 +56,19 @@ export default function Patients() {
 
   // Fetch patients from database
   useEffect(() => {
-    fetchPatients();
+    const saved = sessionStorage.getItem("adminPatientsData");
+    if (!saved) {
+      fetchPatients();
+    } else {
+      const savedScroll = sessionStorage.getItem("patientsScrollY");
+      if (savedScroll) {
+        setTimeout(() => {
+          const container = document.getElementById("main-scroll-container");
+          if (container) container.scrollTo(0, parseInt(savedScroll, 10));
+          sessionStorage.removeItem("patientsScrollY");
+        }, 100);
+      }
+    }
   }, []);
 
   const fetchPatients = async () => {
@@ -101,6 +124,15 @@ export default function Patients() {
         });
 
         setPatients(transformedPatients);
+        sessionStorage.setItem("adminPatientsData", JSON.stringify(transformedPatients));
+        const savedScroll = sessionStorage.getItem("patientsScrollY");
+        if (savedScroll) {
+          setTimeout(() => {
+            const container = document.getElementById("main-scroll-container");
+            if (container) container.scrollTo(0, parseInt(savedScroll, 10));
+            sessionStorage.removeItem("patientsScrollY");
+          }, 100);
+        }
       } else {
         setError(data.message || "Failed to load patients");
       }
@@ -459,7 +491,11 @@ export default function Patients() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => navigate(`/health-history`, { state: { email: patient.email, name: patient.name } })}
+                        onClick={() => {
+                          const container = document.getElementById("main-scroll-container");
+                          sessionStorage.setItem("patientsScrollY", container ? container.scrollTop : 0);
+                          navigate(`/health-history`, { state: { email: patient.email, name: patient.name } });
+                        }}
                         className="text-orange-600 hover:text-orange-900"
                       >
                         Health History

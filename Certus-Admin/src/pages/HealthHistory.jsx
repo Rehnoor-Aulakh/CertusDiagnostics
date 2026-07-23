@@ -20,6 +20,12 @@ export default function HealthHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Scroll to top when opening the page
+  useEffect(() => {
+    const container = document.getElementById("main-scroll-container");
+    if (container) container.scrollTo(0, 0);
+  }, []);
+
   const [timeFilter, setTimeFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
