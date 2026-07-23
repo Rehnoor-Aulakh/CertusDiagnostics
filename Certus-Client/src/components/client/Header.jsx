@@ -63,7 +63,12 @@ export default function Header() {
               </svg>
             </button>
             <Link to="/" className="flex items-center flex-shrink-0">
-              <Logo />
+              <div className="hidden md:block">
+                <Logo />
+              </div>
+              <div className="md:hidden logo-container flex items-center gap-1 md:gap-4">
+                <img src="/logo10.png" alt="Certus Diagnostics" className="h-16 w-auto" />
+              </div>
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-8">
@@ -158,7 +163,9 @@ export default function Header() {
           }`}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <Logo />
+          <div className="logo-container flex items-center gap-1 md:gap-4">
+            <img src="/logo10.png" alt="Certus Diagnostics" className="h-16 w-auto" />
+          </div>
           <button onClick={() => setIsMenuOpen(false)} className="text-gray-400 hover:text-white focus:outline-none">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
