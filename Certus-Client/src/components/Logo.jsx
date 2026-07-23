@@ -1,7 +1,7 @@
 export default function Logo() {
   return (
     <div className="logo-container flex items-center gap-1 md:gap-4">
-      <img src="/logo10.png" alt="Certus Diagnostics" className="h-12 md:h-16 w-auto" />
+      <img src="/logo10.png" alt="Certus Diagnostics" className="h-14 md:h-16 w-auto" />
       <img
         src="/thyrocare.png"
         alt="Thyrocare"
