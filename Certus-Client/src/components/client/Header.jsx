@@ -63,12 +63,7 @@ export default function Header() {
               </svg>
             </button>
             <Link to="/" className="flex items-center flex-shrink-0">
-              <div className="hidden md:block">
-                <Logo />
-              </div>
-              <div className="md:hidden logo-container flex items-center gap-1 md:gap-4">
-                <img src="/logo10.png" alt="Certus Diagnostics" className="h-16 w-auto" />
-              </div>
+              <Logo />
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-8">
