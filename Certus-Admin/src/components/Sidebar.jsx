@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../contexts/AdminAuthContext";
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
 
@@ -97,7 +97,11 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="bg-white w-64 shadow-lg">
+    <div
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 md:relative md:translate-x-0 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       {/* Logo */}
       <div className="flex items-center justify-center h-16 border-b border-gray-200">
         <div className="flex items-center space-x-2">
@@ -128,6 +132,7 @@ export default function Sidebar() {
               key={item.name}
               to={item.path}
               end={item.path === "/"}
+              onClick={() => setIsOpen && setIsOpen(false)}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive
