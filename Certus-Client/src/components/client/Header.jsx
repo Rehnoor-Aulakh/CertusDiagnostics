@@ -66,7 +66,7 @@ export default function Header() {
               <Logo />
             </Link>
           </div>
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-3 lg:space-x-6 xl:space-x-8 whitespace-nowrap flex-shrink-0">
             <Link
               to="/"
               className="text-gray-300 hover:text-white transition-colors"
@@ -123,11 +123,11 @@ export default function Header() {
                       </span>
                     </div>
                   )}
-                  <span className="text-gray-300 text-sm">{user?.name}</span>
+                  <span className="text-gray-300 text-sm max-w-[100px] lg:max-w-[150px] truncate" title={user?.name}>{user?.name}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                  className="flex-shrink-0 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                 >
                   Logout
                 </button>
