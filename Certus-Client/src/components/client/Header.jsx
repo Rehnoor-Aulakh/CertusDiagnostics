@@ -42,7 +42,7 @@ export default function Header() {
     <>
       <header className="bg-slate-800/30 backdrop-blur-lg sticky top-0 z-50 w-full overflow-x-hidden">
         <nav className="container mx-auto px-4 md:px-6 py-1 md:py-2 flex justify-between items-center max-w-full">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 md:space-x-3">
             <button
               onClick={() => setIsMenuOpen(true)}
               className="md:hidden text-white focus:outline-none p-1 -ml-1"
