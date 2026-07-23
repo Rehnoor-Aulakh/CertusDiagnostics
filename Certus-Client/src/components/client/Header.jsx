@@ -39,174 +39,203 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-slate-800/30 backdrop-blur-lg sticky top-0 z-50 w-full overflow-x-hidden">
-      <nav className="container mx-auto px-4 md:px-6 py-1 md:py-2 flex justify-between items-center max-w-full">
-        <Link to="/" className="flex items-center flex-shrink-0">
-          <Logo />
-        </Link>
-        <div className="hidden md:flex items-center space-x-8">
-          <Link
-            to="/"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            Home
-          </Link>
-          <Link
-            to="/book-a-test"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            Book a Test
-          </Link>
-          <Link
-            to="/your-reports"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            Your Reports
-          </Link>
-          <Link
-            to="/health-history"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            Health History
-          </Link>
-          <Link
-            to="/contact-us"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            Contact Us
-          </Link>
-          {isLoggedIn ? (
-            <div className="flex items-center space-x-4">
-              <div
-                className="flex items-center space-x-2 cursor-pointer"
-                onClick={() => navigate("/dashboard")}
-              >
-                {user?.profile_picture && !imageLoadError ? (
-                  <img
-                    src={getOptimizedProfilePicture(user.profile_picture)}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                    onError={() => {
-                      console.warn(
-                        "Header profile picture failed to load, using fallback"
-                      );
-                      setImageLoadError(true);
-                    }}
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-white">
-                      {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                    </span>
-                  </div>
-                )}
-                <span className="text-gray-300 text-sm">{user?.name}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <Link
-              to="/sign-in"
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+    <>
+      <header className="bg-slate-800/30 backdrop-blur-lg sticky top-0 z-50 w-full overflow-x-hidden">
+        <nav className="container mx-auto px-4 md:px-6 py-1 md:py-2 flex justify-between items-center max-w-full">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className="md:hidden text-white focus:outline-none p-1 -ml-1"
             >
-              Sign In
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16m-7 6h7"
+                ></path>
+              </svg>
+            </button>
+            <Link to="/" className="flex items-center flex-shrink-0">
+              <Logo />
             </Link>
-          )}
-        </div>
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden text-white focus:outline-none"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            ></path>
-          </svg>
-        </button>
-      </nav>
+          </div>
+          <div className="hidden md:flex items-center space-x-8">
+            <Link
+              to="/"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              to="/book-a-test"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Book a Test
+            </Link>
+            <Link
+              to="/your-reports"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Your Reports
+            </Link>
+            <Link
+              to="/health-history"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Health History
+            </Link>
+            <Link
+              to="/contact-us"
+              className="text-gray-300 hover:text-white transition-colors"
+            >
+              Contact Us
+            </Link>
+            {isLoggedIn ? (
+              <div className="flex items-center space-x-4">
+                <div
+                  className="flex items-center space-x-2 cursor-pointer"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  {user?.profile_picture && !imageLoadError ? (
+                    <img
+                      src={getOptimizedProfilePicture(user.profile_picture)}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover"
+                      onError={() => {
+                        console.warn(
+                          "Header profile picture failed to load, using fallback"
+                        );
+                        setImageLoadError(true);
+                      }}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-bold text-white">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </span>
+                    </div>
+                  )}
+                  <span className="text-gray-300 text-sm">{user?.name}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/sign-in"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+        </nav>
+      </header>
+
+      {/* Mobile Drawer Overlay */}
       {isMenuOpen && (
-        <div className="md:hidden px-4 pt-1 pb-3 space-y-2">
+        <div
+          className="fixed inset-0 bg-black/60 z-[60] md:hidden transition-opacity"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Drawer */}
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-slate-900 shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
+          <Logo />
+          <button onClick={() => setIsMenuOpen(false)} className="text-gray-400 hover:text-white focus:outline-none">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-4">
           <Link
             to="/"
-            className="block text-gray-300 hover:text-white transition-colors"
+            className="block text-lg font-medium text-gray-300 hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             Home
           </Link>
           <Link
             to="/book-a-test"
-            className="block text-gray-300 hover:text-white transition-colors"
+            className="block text-lg font-medium text-gray-300 hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             Book a Test
           </Link>
           <Link
             to="/your-reports"
-            className="block text-gray-300 hover:text-white transition-colors"
+            className="block text-lg font-medium text-gray-300 hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             Your Reports
           </Link>
           <Link
             to="/health-history"
-            className="block text-gray-300 hover:text-white transition-colors"
+            className="block text-lg font-medium text-gray-300 hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             Health History
           </Link>
           <Link
             to="/contact-us"
-            className="block text-gray-300 hover:text-white transition-colors"
+            className="block text-lg font-medium text-gray-300 hover:text-white transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
             Contact Us
           </Link>
+        </div>
+
+        <div className="p-4 border-t border-slate-700/50">
           {isLoggedIn ? (
             <>
-              <div className="flex items-center space-x-2 py-2" onClick={() => navigate("/dashboard")}>
+              <div className="flex items-center space-x-3 py-3 px-2 rounded-lg bg-slate-800/50 cursor-pointer mb-3" onClick={() => { navigate("/dashboard"); setIsMenuOpen(false); }}>
                 {user?.profile_picture && !imageLoadError ? (
                   <img
                     src={getOptimizedProfilePicture(user.profile_picture)}
                     alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover border border-slate-600"
                     onError={() => {
-                      console.warn(
-                        "Mobile header profile picture failed to load, using fallback"
-                      );
                       setImageLoadError(true);
                     }}
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-white">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-lg font-bold text-white">
                       {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                     </span>
                   </div>
                 )}
-                <span className="text-gray-300 text-sm">{user?.name}</span>
+                <div className="flex flex-col truncate">
+                  <span className="text-white font-medium truncate">{user?.name}</span>
+                  <span className="text-slate-400 text-xs truncate">{user?.email || "User"}</span>
+                </div>
               </div>
               <button
                 onClick={() => {
                   handleLogout();
                   setIsMenuOpen(false);
                 }}
-                className="block w-full bg-red-500 hover:bg-red-600 text-white text-center font-semibold py-2 px-4 rounded-lg transition-colors mt-2"
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
               >
                 Logout
               </button>
@@ -214,14 +243,14 @@ export default function Header() {
           ) : (
             <Link
               to="/sign-in"
-              className="block bg-blue-500 hover:bg-blue-600 text-white text-center font-semibold py-2 px-4 rounded-lg transition-colors mt-2"
+              className="block w-full text-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Sign In
             </Link>
           )}
         </div>
-      )}
-    </header>
+      </div>
+    </>
   );
 }
