@@ -4,8 +4,10 @@ import { API_ENDPOINTS } from "../utils/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 export default function Patients() {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -457,10 +459,10 @@ export default function Patients() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleViewPatient(patient)}
-                        className="text-blue-600 hover:text-blue-900"
+                        onClick={() => navigate(`/health-history`, { state: { email: patient.email, name: patient.name } })}
+                        className="text-orange-600 hover:text-orange-900"
                       >
-                        View
+                        Health History
                       </button>
                       <button
                         onClick={() => handleEditPatient(patient)}
@@ -473,6 +475,12 @@ export default function Patients() {
                         className="text-purple-600 hover:text-purple-900"
                       >
                         Add Test
+                      </button>
+                      <button
+                        onClick={() => handleViewPatient(patient)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        View
                       </button>
                     </div>
                   </td>

@@ -12,6 +12,7 @@ import Tests from "./pages/Tests";
 import Settings from "./pages/Settings";
 import EnhancedLogin from "./pages/EnhancedLogin";
 import { useAdminAuth } from "./contexts/AdminAuthContext";
+import HealthHistory from "./pages/HealthHistory";
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -46,6 +47,7 @@ function App() {
             <Route path="patients" element={<Patients />} />
             <Route path="tests" element={<Tests />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="health-history" element={<HealthHistory />} />
           </Route>
         </Routes>
       </div>

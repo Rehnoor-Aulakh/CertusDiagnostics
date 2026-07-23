@@ -1,10 +1,13 @@
 package com.rehnoor.certusbackend.controller.admin;
 
+import com.rehnoor.certusbackend.dto.history.HealthHistoryResponse;
 import com.rehnoor.certusbackend.model.Patient;
 import com.rehnoor.certusbackend.repository.PatientRepository;
+import com.rehnoor.certusbackend.service.PatientPortalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -18,6 +21,9 @@ public class PatientController {
 
     @Autowired
     private PatientRepository patientRepository;
+
+    @Autowired
+    private PatientPortalService patientPortalService;
 
     @GetMapping
     public ResponseEntity<?> getAllPatients() {
@@ -71,5 +77,11 @@ public class PatientController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
         }
+    }
+    @GetMapping("/history")
+    public ResponseEntity<?> getPatientHistory(@RequestParam("email") String email){
+        HealthHistoryResponse response = patientPortalService.getHealthHistory(email);
+        return ResponseEntity.ok(response);
+
     }
 }

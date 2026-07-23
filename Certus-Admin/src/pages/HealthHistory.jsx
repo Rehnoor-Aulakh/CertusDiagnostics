@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Search, TrendingUp, TrendingDown, Activity, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
-import { API_BASE_URL } from "../config/api";
 
 import HealthSummaryCard from "../components/history/HealthSummaryCard";
 import HealthFilterBar from "../components/history/HealthFilterBar";
 import HealthGraphCarousel from "../components/history/HealthGraphCarousel";
 import HealthAccordion from "../components/history/HealthAccordion";
 import LoadingSpinner from "../components/LoadingSpinner";
+import API_ENDPOINTS from "../utils/api";
 
 export default function HealthHistory() {
-  const { user, isLoggedIn, loading: authLoading } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
+  // we need to fetch the state that contains patient email from the previous Patients page
+  const patientEmail = typeof location.state === 'string' ? location.state : location.state?.email;
+  const patientName = location.state?.name;
 
   const [historyData, setHistoryData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,20 +24,20 @@ export default function HealthHistory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  useEffect(() => {
-    if (!authLoading && !isLoggedIn) {
-      navigate("/sign-in");
-    }
-  }, [isLoggedIn, authLoading, navigate]);
 
   const fetchHistory = useCallback(async () => {
-    if (!user?.token) return;
+
     try {
+
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/patient/history`, {
+      const rawAdminData = localStorage.getItem("adminUser");
+      const token = rawAdminData ? JSON.parse(rawAdminData).token : null;
+      const response = await fetch(`${API_ENDPOINTS.patient_history}?email=${encodeURIComponent(patientEmail)}`, {
+        method: "GET",
         headers: {
-          Authorization: `Bearer ${user.token}`,
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
       });
 
@@ -51,13 +53,13 @@ export default function HealthHistory() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (patientEmail) {
       fetchHistory();
     }
-  }, [isLoggedIn, fetchHistory]);
+  }, [patientEmail, fetchHistory]);
 
   const filteredTests = useMemo(() => {
     if (!historyData?.graphs) return [];
@@ -103,7 +105,7 @@ export default function HealthHistory() {
     return tests;
   }, [historyData, timeFilter, statusFilter, searchQuery]);
 
-  if (authLoading) return <LoadingSpinner fullScreen />;
+
 
   if (loading) {
     return (
@@ -146,11 +148,28 @@ export default function HealthHistory() {
 
   if (!historyData || (historyData.graphs.length === 0 && !historyData.summary)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+      <div className="-m-6 min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
         {/* Subtle Pattern Overlay */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICAgICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDIpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgogICAgPC9zdmc+')] opacity-30"></div>
         <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
-          <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <button 
+                onClick={() => navigate(-1)} 
+                className="text-blue-300 hover:text-white flex items-center gap-2 mb-2 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to Patients
+              </button>
+              <h1 className="text-3xl font-bold text-white">Health History Dashboard</h1>
+            </div>
+            {patientEmail && (
+              <div className="text-left md:text-right">
+                <div className="text-white font-semibold text-lg">{patientName || "Patient"}</div>
+                <div className="text-blue-200 text-sm">{patientEmail}</div>
+              </div>
+            )}
+          </div>
           <div className="bg-white/5 rounded-2xl p-12 text-center glass-card flex flex-col items-center">
             <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4 opacity-50" />
             <h2 className="text-2xl font-bold text-white mb-2">No health history available yet.</h2>
@@ -162,12 +181,29 @@ export default function HealthHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+    <div className="-m-6 min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
       {/* Subtle Pattern Overlay */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICAgICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDIpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgogICAgPC9zdmc+')] opacity-30"></div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl space-y-8">
-        <h1 className="text-3xl font-bold text-white">Health History Dashboard</h1>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <button 
+              onClick={() => navigate(-1)} 
+              className="text-blue-300 hover:text-white flex items-center gap-2 mb-2 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back to Patients
+            </button>
+            <h1 className="text-3xl font-bold text-white">Health History Dashboard</h1>
+          </div>
+          {patientEmail && (
+            <div className="text-left md:text-right">
+              <div className="text-white font-semibold text-lg">{patientName || "Patient"}</div>
+              <div className="text-blue-200 text-sm">{patientEmail}</div>
+            </div>
+          )}
+        </div>
 
         {historyData.summary && (
           <HealthSummaryCard summary={historyData.summary} />

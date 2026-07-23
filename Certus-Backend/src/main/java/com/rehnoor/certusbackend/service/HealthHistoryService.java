@@ -161,7 +161,9 @@ public class HealthHistoryService {
                         }
                 );
                 TimelinePointDTO point = new TimelinePointDTO();
-                point.setDate(LocalDate.from(report.getReportDate()));
+                java.time.ZonedDateTime effectiveDate = report.getReportDate() != null ? report.getReportDate() : report.getSampleCollectedOn();
+                if (effectiveDate == null) continue;
+                point.setDate(LocalDate.from(effectiveDate));
                 point.setValue(parseValue(test.getValue()));
                 point.setAbnormal(Boolean.TRUE.equals(test.getAbnormal()));
                 timeline.getTimeline().add(point);

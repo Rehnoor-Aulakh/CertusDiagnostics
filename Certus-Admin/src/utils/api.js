@@ -16,6 +16,7 @@ export const API_ENDPOINTS = {
 
   // Patient endpoints
   patients: `${API_BASE_URL}/admin/patients`,
+  patient_history: `${API_BASE_URL}/admin/patients/history`,
 
   // Report endpoints
   reports: `${API_BASE_URL}/admin/reports`,
