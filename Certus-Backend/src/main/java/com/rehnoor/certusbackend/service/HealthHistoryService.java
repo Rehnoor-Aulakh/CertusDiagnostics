@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rehnoor.certusbackend.dto.history.*;
 import com.rehnoor.certusbackend.enums.HealthTrendStatus;
+import com.rehnoor.certusbackend.model.HealthHistory;
 import com.rehnoor.certusbackend.model.Patient;
 import com.rehnoor.certusbackend.model.Report;
+import com.rehnoor.certusbackend.repository.HealthHistoryRepository;
+import com.rehnoor.certusbackend.repository.PatientRepository;
 import com.rehnoor.certusbackend.repository.ReportRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,9 +17,15 @@ import java.time.LocalDate;
 import java.util.*;
 
 import lombok.Data;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class HealthHistoryService {
+    @Autowired
+    private HealthHistoryRepository healthHistoryRepository;
+
+    @Autowired
+    private PatientRepository patientRepository;
 
     @Autowired
     private ReportRepository reportRepository;
@@ -35,8 +44,7 @@ public class HealthHistoryService {
         boolean upperInclusive;
     }
 
-    public HealthHistoryResponse buildHistory(String email){
-        List<Report> reports = reportRepository.findByPatientId_EmailIgnoreCaseOrderByReportDateAsc(email);
+    private HealthHistoryResponse buildHistory(List<Report> reports){
         Map<String, TestHistoryDTO> groupedTests = groupTests(reports);
         // get the statuses for the grouped tests
         for(TestHistoryDTO timeline: groupedTests.values()){
@@ -162,8 +170,9 @@ public class HealthHistoryService {
                 );
                 TimelinePointDTO point = new TimelinePointDTO();
                 java.time.ZonedDateTime effectiveDate = report.getReportDate() != null ? report.getReportDate() : report.getSampleCollectedOn();
+                if (effectiveDate == null) effectiveDate = report.getUpdatedAt();
                 if (effectiveDate == null) continue;
-                point.setDate(LocalDate.from(effectiveDate));
+                point.setDate(LocalDate.from(effectiveDate).toString());
                 point.setValue(parseValue(test.getValue()));
                 point.setAbnormal(Boolean.TRUE.equals(test.getAbnormal()));
                 timeline.getTimeline().add(point);
@@ -288,10 +297,6 @@ public class HealthHistoryService {
         }
     }
     private void determineStatus(TestHistoryDTO timeline){
-        if(timeline.getParsedRange() ==null){
-            timeline.setStatus(null);
-            return;
-        }
         if(timeline.getTimeline().isEmpty()){
             timeline.setStatus(null);
             return;
@@ -301,25 +306,37 @@ public class HealthHistoryService {
             timeline.setStatus(null);
             return;
         }
+
         // if there is just one report- we cant infer the trend
         if(timeline.getTimeline().size()==1){
-            if(isNormal(latest.getValue(), timeline.getParsedRange())){
-                timeline.setStatus(isNearBoundary(latest.getValue(), timeline.getParsedRange()) ? HealthTrendStatus.NEEDS_ATTENTION : HealthTrendStatus.STABLE_NORMAL);
-
-            } else{
-                timeline.setStatus(HealthTrendStatus.ABNORMAL);
+            if (timeline.getParsedRange() != null) {
+                if(isNormal(latest.getValue(), timeline.getParsedRange())){
+                    timeline.setStatus(isNearBoundary(latest.getValue(), timeline.getParsedRange()) ? HealthTrendStatus.NEEDS_ATTENTION : HealthTrendStatus.STABLE_NORMAL);
+                } else{
+                    timeline.setStatus(HealthTrendStatus.ABNORMAL);
+                }
+            } else {
+                timeline.setStatus(latest.isAbnormal() ? HealthTrendStatus.ABNORMAL : HealthTrendStatus.STABLE_NORMAL);
             }
             return;
         }
+        
         TimelinePointDTO previous = timeline.getTimeline().get(timeline.getTimeline().size()-2);
         if (previous.getValue() == null) {
             timeline.setStatus(null);
             return;
         }
-        boolean currentNormal = isNormal(latest.getValue(), timeline.getParsedRange());
-        boolean previousNormal = isNormal(previous.getValue(), timeline.getParsedRange());
-        double currentDistance = distanceFromNormal(latest.getValue(), timeline.getParsedRange());
-        double previousDistance = distanceFromNormal(previous.getValue(), timeline.getParsedRange());
+        
+        boolean currentNormal;
+        boolean previousNormal;
+        
+        if (timeline.getParsedRange() != null) {
+            currentNormal = isNormal(latest.getValue(), timeline.getParsedRange());
+            previousNormal = isNormal(previous.getValue(), timeline.getParsedRange());
+        } else {
+            currentNormal = !latest.isAbnormal();
+            previousNormal = !previous.isAbnormal();
+        }
 
         // CASE 1: Previous abnormal -> Current Normal (Recovered)
         if(currentNormal && !previousNormal) {
@@ -329,20 +346,30 @@ public class HealthHistoryService {
 
         // CASE 2: Previous normal -> Current Normal (either stable normal or needs attention)
         if(currentNormal && previousNormal){
-            timeline.setStatus(isNearBoundary(latest.getValue(), timeline.getParsedRange()) ? HealthTrendStatus.NEEDS_ATTENTION : HealthTrendStatus.STABLE_NORMAL);
+            if (timeline.getParsedRange() != null) {
+                timeline.setStatus(isNearBoundary(latest.getValue(), timeline.getParsedRange()) ? HealthTrendStatus.NEEDS_ATTENTION : HealthTrendStatus.STABLE_NORMAL);
+            } else {
+                timeline.setStatus(HealthTrendStatus.STABLE_NORMAL);
+            }
             return;
         }
 
         // CASE 3: Previous abnormal -> Current abnormal -> need to compare distance
         if(!currentNormal && !previousNormal){
-            // since the distance always becomes more positive on worsening, we want it small
-            if(currentDistance < previousDistance-EPSILON){
-                timeline.setStatus(HealthTrendStatus.IMPROVING);
-            }
-            else if(currentDistance > previousDistance+EPSILON){
-                timeline.setStatus(HealthTrendStatus.WORSENING);
-            }
-            else{
+            if (timeline.getParsedRange() != null) {
+                double currentDistance = distanceFromNormal(latest.getValue(), timeline.getParsedRange());
+                double previousDistance = distanceFromNormal(previous.getValue(), timeline.getParsedRange());
+                // since the distance always becomes more positive on worsening, we want it small
+                if(currentDistance < previousDistance-EPSILON){
+                    timeline.setStatus(HealthTrendStatus.IMPROVING);
+                }
+                else if(currentDistance > previousDistance+EPSILON){
+                    timeline.setStatus(HealthTrendStatus.WORSENING);
+                }
+                else{
+                    timeline.setStatus(HealthTrendStatus.ABNORMAL);
+                }
+            } else {
                 timeline.setStatus(HealthTrendStatus.ABNORMAL);
             }
             return;
@@ -378,5 +405,34 @@ public class HealthHistoryService {
             default -> Integer.MAX_VALUE;
         };
 
+    }
+
+    @Transactional
+    public void rebuildHealthHistory(String email) {
+        Patient patient = patientRepository.findByEmailIgnoreCase(email).orElseThrow();
+        rebuildHealthHistory(patient);
+
+    }
+
+    @Transactional
+    public void rebuildHealthHistory(Patient patient) {
+        HealthHistory history = healthHistoryRepository.findByPatient(patient).orElseGet(HealthHistory::new);
+        List<Report> reports =
+                reportRepository.findByPatientId_EmailIgnoreCaseOrderByReportDateAsc(patient.getEmail());
+        if (reports.isEmpty()) {
+            if (history.getPatientId() != null) {
+                healthHistoryRepository.delete(history);
+            }
+            return;
+        }
+        HealthHistoryResponse response = buildHistory(reports);
+        history.setPatient(patient);
+        history.setSummary(response.getSummary());
+        history.setGraphs(response.getGraphs());
+        history.setReportCount(reports.size());
+        if (!reports.isEmpty()) {
+            history.setLastReportId(reports.get(reports.size() - 1).getReportId());
+        }
+        healthHistoryRepository.save(history);
     }
 }

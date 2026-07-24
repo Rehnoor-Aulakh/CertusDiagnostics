@@ -45,7 +45,7 @@ public class ReportIngestionService {
 
     @Value("${app.upload.directory}")
     private String uploadDirectory;
-
+    private final HealthHistoryService healthHistoryService;
     private final PatientRepository patientRepository;
     private final ReportRepository reportRepository;
     private final IdentityMappingRepository identityMappingRepository;
@@ -57,12 +57,14 @@ public class ReportIngestionService {
             ReportRepository reportRepository,
             IdentityMappingRepository identityMappingRepository,
             ObjectMapper objectMapper,
-            EmailService emailService) {
+            EmailService emailService,
+            HealthHistoryService healthHistoryService) {
         this.patientRepository = patientRepository;
         this.reportRepository = reportRepository;
         this.identityMappingRepository = identityMappingRepository;
         this.objectMapper = objectMapper;
         this.emailService = emailService;
+        this.healthHistoryService = healthHistoryService;
     }
 
     private final Faker faker = new Faker(Locale.forLanguageTag("en-IN"));
@@ -217,6 +219,8 @@ public class ReportIngestionService {
                 .orElseGet(() -> createPatient(metadata, email, phone));
 
         Report savedReport = saveReport(pdfFile, diagnosticReport, patient);
+        // Refresh the cached health history
+        healthHistoryService.rebuildHealthHistory(patient);
         System.out.println("Real Data Ingestion Successful: " + pdfFile.getName() + " -> " + patient.getName());
         emailService.sendReportUploadedEmail(patient, savedReport, pdfFile, diagnosticReport);
         return savedReport.getReportId();

@@ -3,8 +3,11 @@ package com.rehnoor.certusbackend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rehnoor.certusbackend.dto.history.HealthHistoryResponse;
+import com.rehnoor.certusbackend.dto.history.SummaryDTO;
+import com.rehnoor.certusbackend.model.HealthHistory;
 import com.rehnoor.certusbackend.model.Patient;
 import com.rehnoor.certusbackend.model.Report;
+import com.rehnoor.certusbackend.repository.HealthHistoryRepository;
 import com.rehnoor.certusbackend.repository.PatientRepository;
 import com.rehnoor.certusbackend.repository.ReportRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +36,7 @@ public class PatientPortalService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private HealthHistoryService healthHistoryService;
+    private HealthHistoryRepository healthHistoryRepository;
 
     @Value("${app.upload.directory}")
     private String uploadDirectory;
@@ -116,6 +119,17 @@ public class PatientPortalService {
     }
 
     public HealthHistoryResponse getHealthHistory(String email){
-        return healthHistoryService.buildHistory(email);
+        HealthHistory history = healthHistoryRepository.findByPatient_EmailIgnoreCase(email);
+        HealthHistoryResponse response = new HealthHistoryResponse();
+        
+        if (history == null) {
+            response.setGraphs(new ArrayList<>());
+            response.setSummary(new SummaryDTO());
+            return response;
+        }
+
+        response.setGraphs(history.getGraphs());
+        response.setSummary(history.getSummary());
+        return response;
     }
 }

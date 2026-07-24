@@ -441,6 +441,11 @@ ALTER TABLE ONLY public.patient_identity_mapping
     ADD CONSTRAINT patient_identity_mapping_fake_patient_id_fkey FOREIGN KEY (fake_patient_id) REFERENCES public.patients(patient_id) ON DELETE CASCADE;
 
 
+CREATE TABLE health_history (patient_id BIGINT primary key, summary JSONB NOT NULL, graphs JSONB NOT NULL, last_report_id bigint, report_count integer not null default 0, created_at timestamp not null default current_timestamp, updated_at timestamp default current_timestamp,
+    CONSTRAINT fk_health_history_patient
+        FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
+);
+
 --
 -- PostgreSQL database dump complete
 --
