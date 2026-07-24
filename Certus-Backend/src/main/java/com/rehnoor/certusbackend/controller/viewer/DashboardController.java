@@ -20,18 +20,8 @@ public class DashboardController {
     @GetMapping("/fetchReviews")
     public ResponseEntity<?> getReviews(){
         List<GoogleReview> reviews = reviewRepository.findAllByOrderByRatingDesc();
-        return ResponseEntity.ok(Map.of("success",true,"data",reviews));
+        double avgRating = reviews.stream().mapToDouble(GoogleReview::getRating).average().orElse(5.0);
+        return ResponseEntity.ok(Map.of("success",true,"data",reviews, "stats", Map.of("total_reviews", reviews.size(),"average_rating",avgRating)));
     }
 
-    @GetMapping("/fetchReviewStats")
-    public ResponseEntity<?> getReviewStats(){
-        List<GoogleReview> reviews = reviewRepository.findAll();
-        long totalReviews = reviews.size();
-        double avgRating = reviews.stream().mapToDouble(GoogleReview::getRating).average().orElse(5.0);
-        
-        return ResponseEntity.ok(Map.of("success", true, "data", Map.of(
-            "total_reviews", totalReviews,
-            "average_rating", avgRating
-        )));
-    }
 }

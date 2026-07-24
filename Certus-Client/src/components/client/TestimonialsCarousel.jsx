@@ -23,19 +23,18 @@ export default function TestimonialsCarousel() {
         setLoading(true);
 
         // Fetch reviews and stats in parallel
-        const [reviewsResponse, statsResponse] = await Promise.all([
+        const [reviewsResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/viewer/fetchReviews`),
-          fetch(`${API_BASE_URL}/viewer/fetchReviewStats`),
         ]);
 
-        if (!reviewsResponse.ok || !statsResponse.ok) {
+        if (!reviewsResponse.ok) {
           throw new Error("Failed to fetch reviews");
         }
 
         const reviewsData = await reviewsResponse.json();
-        const statsData = await statsResponse.json();
 
-        if (reviewsData.success && statsData.success) {
+        if (reviewsData.success) {
+          const statsData = reviewsData.stats;
           // Map Google Reviews data to testimonials format
           const mappedTestimonials = reviewsData.data.map((review) => ({
             name: review.author || "Anonymous",
@@ -67,10 +66,10 @@ export default function TestimonialsCarousel() {
           });
 
           setTestimonials(sortedTestimonials);
-          setStats(statsData.data);
+          setStats(statsData);
         } else {
           throw new Error(
-            reviewsData.message || statsData.message || "Failed to load reviews"
+            reviewsData.message || "Failed to load reviews"
           );
         }
       } catch (err) {

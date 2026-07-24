@@ -85,7 +85,7 @@ export default function ContactUs() {
                 </div>
                 <div>
                   <h3 className="text-white font-semibold">Phone</h3>
-                  <p className="text-gray-300">+91 8198074000</p>
+                  {/* <p className="text-gray-300">+91 7837167837</p> */}
                   <p className="text-gray-300">+91 7837167837</p>
                 </div>
               </div>
@@ -108,7 +108,7 @@ export default function ContactUs() {
                 </div>
                 <div>
                   <h3 className="text-white font-semibold">Email</h3>
-                  <p className="text-gray-300">info@certusdiagnostics.com</p>
+                  <p className="text-gray-300">diagnosticscertus@gmail.com</p>
                 </div>
               </div>
 
@@ -142,7 +142,7 @@ export default function ContactUs() {
             <div className="mt-8 flex flex-col md:flex-row gap-4">
               {/* Call Button */}
               <a
-                href="tel:+918198074000"
+                href="tel:+917837167837"
                 className="w-full md:flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
               >
                 <svg
@@ -163,7 +163,7 @@ export default function ContactUs() {
 
               {/* WhatsApp Button */}
               <a
-                href="https://wa.me/918198074000?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20your%20diagnostic%20services."
+                href="https://wa.me/917837167837?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20your%20diagnostic%20services."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full md:flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
