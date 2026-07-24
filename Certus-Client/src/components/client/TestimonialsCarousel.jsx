@@ -24,8 +24,8 @@ export default function TestimonialsCarousel() {
 
         // Fetch reviews and stats in parallel
         const [reviewsResponse, statsResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/google-reviews.php`),
-          fetch(`${API_BASE_URL}/google-reviews.php?stats=1`),
+          fetch(`${API_BASE_URL}/viewer/fetchReviews`),
+          fetch(`${API_BASE_URL}/viewer/fetchReviewStats`),
         ]);
 
         if (!reviewsResponse.ok || !statsResponse.ok) {
@@ -40,9 +40,9 @@ export default function TestimonialsCarousel() {
           const mappedTestimonials = reviewsData.data.map((review) => ({
             name: review.author || "Anonymous",
             rating: review.rating || 5,
-            text: review.review_text || review.text || "",
+            text: review.reviewText || review.review_text || review.text || "",
             package: "Google Review",
-            review_time: review.review_time,
+            review_time: review.reviewTime || review.review_time,
             id: review.id,
           }));
 

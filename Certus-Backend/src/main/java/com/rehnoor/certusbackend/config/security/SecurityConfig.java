@@ -78,6 +78,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Allow both separate frontends to access login/auth endpoints freely
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/viewer/**").permitAll()
 
                         // Strict separation rules for internal features
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

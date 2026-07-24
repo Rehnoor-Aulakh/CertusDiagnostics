@@ -71,4 +71,5 @@ public class PatientPortalController {
         return ResponseEntity.ok(response);
 
     }
+
 }
