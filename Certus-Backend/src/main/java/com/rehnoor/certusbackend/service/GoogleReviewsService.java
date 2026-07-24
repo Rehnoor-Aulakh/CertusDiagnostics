@@ -31,6 +31,9 @@ public class GoogleReviewsService {
     @Value("${google.api.max-reviews:5}")
     private int maxReviews;
 
+    @Value("${google.api.fetching.enabled:false}")
+    private boolean isFetchingEnabled;
+
     @Value("${app.timezone:Asia/Kolkata}")
     private String configuredTimezone;
 
@@ -45,8 +48,12 @@ public class GoogleReviewsService {
 
     // Scheduled job running daily at 9:00 AM IST
 
-    @Scheduled(cron="0 0 13 * * *", zone="Asia/Kolkata")
+//    @Scheduled(cron="0 0 13 * * *", zone="Asia/Kolkata")
     public int fetchAndSaveReviews() {
+        if (!isFetchingEnabled) {
+            System.out.println("Google Reviews fetch process is disabled via configuration.");
+            return 0;
+        }
         log.info("Starting Google Reviews fetch process...");
 
         if("ENTER_GOOGLE_API_KEY".equals(apiKey) || "ENTER_PLACE_ID".equals(placeId)){
