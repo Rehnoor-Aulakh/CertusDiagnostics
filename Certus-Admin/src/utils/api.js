@@ -24,7 +24,9 @@ export const API_ENDPOINTS = {
 
 
   packageCategories: `${API_BASE_URL}/admin/package-categories`,
+  reorderCategories: `${API_BASE_URL}/admin/package-categories/reorder`,
   packages: `${API_BASE_URL}/admin/packages`,
+  reorderPackages: `${API_BASE_URL}/admin/packages/reorder`,
 
 
   // Report view URL builder (uses the authenticated API endpoint)

@@ -32,8 +32,8 @@ public class PackageCategoryService {
 
     public void uploadPackageCategory(String name, String imageUrl) {
         PackageCategory category = new PackageCategory();
-        category.setName(name);
-        category.setImageUrl(imageUrl);
+        category.setName(name != null ? name.trim() : null);
+        category.setImageUrl((imageUrl != null && !imageUrl.trim().isEmpty()) ? imageUrl.trim() : null);
         category.setDisplayOrder(packageCategoryRepository.findMaxDisplayOrder() + 1);
         packageCategoryRepository.save(category);
     }
@@ -65,13 +65,13 @@ public class PackageCategoryService {
         PackageCategory category = packageCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         if (payload.getName() != null) {
-            category.setName(payload.getName());
+            category.setName(payload.getName().trim());
         }
         if (payload.getStatus() != null) {
             category.setStatusAvailable(payload.getStatus());
         }
         if (payload.getImageUrl() != null) {
-            category.setImageUrl(payload.getImageUrl());
+            category.setImageUrl(!payload.getImageUrl().trim().isEmpty() ? payload.getImageUrl().trim() : null);
         }
         packageCategoryRepository.save(category);
     }
