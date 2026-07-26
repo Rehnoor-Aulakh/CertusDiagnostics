@@ -90,12 +90,12 @@ export default function PackageCategorySection({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`transition-all rounded-lg p-6 bg-white border ${
+      className={`transition-all duration-300 rounded-3xl p-6 md:p-8 bg-white border ${
         isDragOverCategory
-          ? "border-blue-500 bg-blue-50/20"
+          ? "border-blue-500 bg-blue-50/20 ring-4 ring-blue-500/20 scale-[1.01]"
           : isEditMode
-          ? "border-dashed border-2 border-blue-400"
-          : "border-gray-200 shadow"
+          ? "border-dashed border-2 border-blue-400 shadow-sm"
+          : "border-gray-100/80 shadow-sm hover:shadow-md"
       }`}
     >
       {/* Category Header Bar */}

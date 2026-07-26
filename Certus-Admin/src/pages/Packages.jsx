@@ -379,7 +379,7 @@ export default function Packages() {
   return (
     <div className="space-y-6">
       {/* Page Header & Mode Toggle Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-lg shadow border border-gray-200">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 transition-all">
         <div>
           <div className="flex items-center space-x-3">
             <h1 className="text-2xl font-bold text-gray-900">
@@ -404,14 +404,14 @@ export default function Packages() {
             <>
               <button
                 onClick={openNewCategoryModal}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-1.5 shadow-sm"
+                className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-1.5 shadow-sm"
               >
                 + Add Category
               </button>
 
               <button
                 onClick={() => openNewPackageModal("")}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1.5 shadow-sm"
+                className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-1.5 shadow-sm"
               >
                 + Add Package
               </button>
@@ -421,7 +421,7 @@ export default function Packages() {
           {/* Switch Mode Button */}
           <button
             onClick={() => setIsEditMode(!isEditMode)}
-            className="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-black transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
+            className="bg-gray-900 text-white px-4 py-2 rounded-xl hover:bg-black transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
           >
             <span>{isEditMode ? "Done Editing (View Mode)" : "Switch to Edit Mode"}</span>
           </button>
@@ -430,7 +430,7 @@ export default function Packages() {
 
       {/* Categories & Packages List */}
       {packageData.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-lg border border-dashed border-gray-300">
+        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-gray-300 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900">No Packages Found</h3>
           <p className="text-gray-500 text-sm mt-1 max-w-sm mx-auto">
             Get started by switching to Edit Mode and adding your first diagnostic package or category.
@@ -439,7 +439,7 @@ export default function Packages() {
             <div className="mt-6 flex justify-center space-x-3">
               <button
                 onClick={openNewCategoryModal}
-                className="px-4 py-2 rounded-lg bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors shadow-sm"
+                className="px-4 py-2 rounded-xl bg-green-600 text-white font-medium text-sm hover:bg-green-700 transition-colors shadow-sm"
               >
                 + Add Category
               </button>
@@ -477,7 +477,7 @@ export default function Packages() {
       {/* ========================================== */}
       {showCategoryModal && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 border border-gray-200 overflow-hidden relative">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 md:p-8 border border-gray-200 overflow-hidden relative">
             <h3 className="text-xl font-bold text-gray-900 mb-4">
               {editingCategory ? "Edit Category Details" : "Add New Category"}
             </h3>
@@ -493,7 +493,7 @@ export default function Packages() {
                   placeholder="e.g. Hormonal Imbalance, Full Body Checkup"
                   value={catForm.name}
                   onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                 />
               </div>
 
@@ -506,7 +506,7 @@ export default function Packages() {
                   placeholder="e.g. category_icon.png or https://..."
                   value={catForm.imageUrl}
                   onChange={(e) => setCatForm({ ...catForm, imageUrl: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">Leave blank if no image is needed.</p>
               </div>
@@ -528,14 +528,14 @@ export default function Packages() {
                 <button
                   type="button"
                   onClick={() => setShowCategoryModal(false)}
-                  className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
+                  className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-sm transition-colors shadow-sm"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-sm transition-colors shadow-sm"
                 >
                   {submitting ? "Saving..." : editingCategory ? "Save Changes" : "Create Category"}
                 </button>
@@ -550,7 +550,7 @@ export default function Packages() {
       {/* ========================================== */}
       {showPackageModal && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 border border-gray-200 overflow-auto max-h-[90vh] relative">
+          <div className="bg-white rounded-3xl shadow-xl max-w-lg w-full p-6 md:p-8 border border-gray-200 overflow-auto max-h-[90vh] relative">
             <h3 className="text-xl font-bold text-gray-900 mb-4">
               {editingPackage ? "Edit Package Details" : "Add New Diagnostic Package"}
             </h3>
@@ -566,7 +566,7 @@ export default function Packages() {
                   placeholder="e.g. Womens Hairfall Screening Advanced"
                   value={pkgForm.name}
                   onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                 />
               </div>
 
@@ -578,7 +578,7 @@ export default function Packages() {
                   <select
                     value={pkgForm.categoryId}
                     onChange={(e) => setPkgForm({ ...pkgForm, categoryId: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none bg-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none bg-white"
                   >
                     <option value="">-- Uncategorized --</option>
                     {allCategoriesList.map((cat) => (
@@ -600,7 +600,7 @@ export default function Packages() {
                     placeholder="3299"
                     value={pkgForm.price}
                     onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                   />
                 </div>
               </div>
@@ -615,7 +615,7 @@ export default function Packages() {
                     placeholder="51"
                     value={pkgForm.numberOfTests}
                     onChange={(e) => setPkgForm({ ...pkgForm, numberOfTests: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                   />
                 </div>
 
@@ -628,7 +628,7 @@ export default function Packages() {
                     placeholder="Auto (0, 1, 2...)"
                     value={pkgForm.displayOrder}
                     onChange={(e) => setPkgForm({ ...pkgForm, displayOrder: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                   />
                 </div>
               </div>
@@ -642,7 +642,7 @@ export default function Packages() {
                   placeholder="e.g. Hairfall_Package.jpeg"
                   value={pkgForm.imageUrl}
                   onChange={(e) => setPkgForm({ ...pkgForm, imageUrl: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">Flyer image stored in uploads/packages folder or full URL.</p>
               </div>
@@ -664,14 +664,14 @@ export default function Packages() {
                 <button
                   type="button"
                   onClick={() => setShowPackageModal(false)}
-                  className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
+                  className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-sm transition-colors shadow-sm"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium text-sm transition-colors shadow-sm"
                 >
                   {submitting ? "Saving..." : editingPackage ? "Save Changes" : "Create Package"}
                 </button>

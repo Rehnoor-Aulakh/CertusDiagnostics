@@ -192,9 +192,9 @@ export default function PackageViewerCard({
 
   return (
     <>
-      <div className={`bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex ${
+      <div className={`group relative bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100/80 overflow-hidden flex ${
         isVertical ? "flex-col md:flex-row items-stretch" : "flex-col"
-      } h-full transition-shadow hover:shadow-md`}>
+      } h-full transform hover:-translate-y-1`}>
         {isVertical ? (
           <>
             {renderImageBox(true)}
