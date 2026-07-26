@@ -64,15 +64,18 @@ export default function ClientPackageCard({ package: pkg, categoryName }) {
     </div>
   );
 
-  // Image Element with zoom hover overlay
+  // Image Element with zoom hover overlay and natural blur-up animation
   const renderImageElement = (extraClassName = "") => (
     <div
       onClick={handleOpenZoom}
-      className={`relative rounded-xl overflow-hidden bg-slate-900/80 border border-slate-700/80 shadow-md group/img cursor-pointer transition-all duration-300 hover:border-slate-500 ${extraClassName}`}
+      className={`relative rounded-xl overflow-hidden bg-slate-900/80 border border-slate-700/80 shadow-md group/img cursor-pointer transition-all duration-500 hover:border-slate-500 flex items-center justify-center ${extraClassName}`}
     >
       {!imgLoaded && !imgError && (
-        <div className="w-full h-64 bg-slate-900/60 animate-pulse flex items-center justify-center text-gray-500 text-xs">
-          Loading flyer...
+        <div className="absolute inset-0 bg-slate-900/80 animate-pulse flex items-center justify-center text-gray-400 text-xs z-10 transition-opacity duration-500">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <span>Loading flyer...</span>
+          </div>
         </div>
       )}
       <img
@@ -80,12 +83,14 @@ export default function ClientPackageCard({ package: pkg, categoryName }) {
         alt={pkg.name || "Package Flyer"}
         onLoad={handleImageLoad}
         onError={() => setImgError(true)}
-        className={`w-full object-cover transition-transform duration-500 group-hover/img:scale-102 ${
-          !imgLoaded || imgError ? "hidden" : "block"
+        className={`w-full object-cover transition-all duration-700 ease-out group-hover/img:scale-105 ${
+          !imgLoaded || imgError
+            ? "opacity-0 scale-95 blur-md"
+            : "opacity-100 scale-100 blur-0"
         } ${isVertical ? "h-[360px] md:h-full min-h-[300px]" : "h-auto max-h-[400px]"}`}
       />
       {/* Zoom indicator pill on hover */}
-      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4 z-20">
         <div className="bg-slate-900/90 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border border-slate-700 shadow-lg transform scale-95 group-hover/img:scale-100 transition-transform duration-300">
           <ZoomIn className="w-4 h-4 text-blue-400" />
           <span>Click to Zoom Flyer</span>

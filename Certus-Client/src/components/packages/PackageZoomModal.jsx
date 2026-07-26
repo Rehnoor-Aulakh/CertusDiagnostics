@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { ZoomIn, ZoomOut, RotateCcw, X, Activity, Calendar, ShieldCheck } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ZoomIn, ZoomOut, RotateCcw, X, Activity, Calendar } from "lucide-react";
 
 /**
  * PackageZoomModal Component
@@ -17,6 +17,12 @@ export default function PackageZoomModal({
   onResetZoom,
   onBookNow
 }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  useEffect(() => {
+    setImgLoaded(false);
+  }, [imageUrl, isOpen]);
+
   // Close on Escape key press
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -104,16 +110,24 @@ export default function PackageZoomModal({
         {/* Image Scroll / Pan Area */}
         <div className="flex-1 overflow-auto p-4 md:p-8 flex items-center justify-center bg-black/40 relative min-h-[50vh]">
           {imageUrl ? (
-            <div className="transition-transform duration-200 ease-out origin-center flex items-center justify-center">
+            <div className="transition-transform duration-200 ease-out origin-center flex items-center justify-center relative">
+              {!imgLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 transition-opacity duration-500">
+                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
               <img
                 src={imageUrl}
                 alt={pkg.name || "Package Flyer"}
+                onLoad={() => setImgLoaded(true)}
                 style={{
                   transform: `scale(${zoomLevel})`,
                   maxHeight: zoomLevel === 1 ? "75vh" : "none",
                   maxWidth: zoomLevel === 1 ? "100%" : "none",
                 }}
-                className="rounded-2xl shadow-2xl border border-white/15 object-contain transition-all duration-200"
+                className={`rounded-2xl shadow-2xl border border-white/15 object-contain transition-all duration-700 ease-out ${
+                  !imgLoaded ? "opacity-0 scale-95 blur-md" : "opacity-100 scale-100 blur-0"
+                }`}
               />
             </div>
           ) : (

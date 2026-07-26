@@ -17,7 +17,7 @@ export default function PackageViewerCard({
   const [isVertical, setIsVertical] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
-  
+
   // Zoom Lightbox State
   const [showZoomModal, setShowZoomModal] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -70,15 +70,14 @@ export default function PackageViewerCard({
     return (
       <div
         onClick={handleOpenZoom}
-        className={`${
-          isLeftColumn
-            ? "w-full md:w-64 lg:w-72 min-h-[240px] border-b md:border-b-0 md:border-r border-gray-200"
-            : "w-full h-64 border-t border-gray-200"
-        } bg-gray-900 relative cursor-zoom-in overflow-hidden group flex items-center justify-center p-2`}
+        className={`${isLeftColumn
+          ? "w-full md:w-64 lg:w-72 min-h-[240px] border-b md:border-b-0 md:border-r border-gray-200"
+          : "w-full h-64 border-t border-gray-200"
+          } bg-gray-900 relative cursor-zoom-in overflow-hidden group flex items-center justify-center p-2`}
         title="Click to zoom flyer contents"
       >
         {!imgLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10 transition-opacity duration-500">
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
@@ -88,7 +87,10 @@ export default function PackageViewerCard({
           alt={pkg.name || "Diagnostic Package Brochure"}
           onLoad={handleImageLoad}
           onError={() => setImgError(true)}
-          className="w-full h-full object-contain max-h-[340px] group-hover:scale-105 transition-transform duration-300"
+          className={`w-full h-full object-contain max-h-[340px] transition-all duration-300 ease-out group-hover:scale-105 ${!imgLoaded || imgError
+            ? "opacity-0 scale-95 blur-md"
+            : "opacity-100 scale-100 blur-0"
+            }`}
         />
 
         {/* Hover Zoom Indicator */}
@@ -192,9 +194,8 @@ export default function PackageViewerCard({
 
   return (
     <>
-      <div className={`group relative bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100/80 overflow-hidden flex ${
-        isVertical ? "flex-col md:flex-row items-stretch" : "flex-col"
-      } h-full transform hover:-translate-y-1`}>
+      <div className={`group relative bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100/80 overflow-hidden flex ${isVertical ? "flex-col md:flex-row items-stretch" : "flex-col"
+        } h-full transform hover:-translate-y-1`}>
         {isVertical ? (
           <>
             {renderImageBox(true)}
