@@ -79,6 +79,7 @@ public class SecurityConfig {
                         // Allow both separate frontends to access login/auth endpoints freely
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/viewer/**").permitAll()
+                        .requestMatchers("/uploads/packages/**", "/uploads/package-categories/**", "/uploads/categories/**", "/uploads/images/**").permitAll()
 
                         // Strict separation rules for internal features
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

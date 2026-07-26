@@ -22,8 +22,32 @@ export const API_ENDPOINTS = {
   reports: `${API_BASE_URL}/admin/reports`,
   upload: `${API_BASE_URL}/admin/reports/upload`,
 
+
+  packageCategories: `${API_BASE_URL}/admin/package-categories`,
+  packages: `${API_BASE_URL}/admin/packages`,
+
+
   // Report view URL builder (uses the authenticated API endpoint)
   getReportUrl: (filename) => `${API_BASE_URL}/admin/reports/view/${encodeURIComponent(filename)}`,
 };
 
+export { UPLOAD_BASE_URL };
+
+// Helper function to get full image URL (for packages, categories, reports, etc.)
+export const getImageUrl = (filename, folder = "packages") => {
+  if (!filename) return null;
+  if (filename.startsWith("http://") || filename.startsWith("https://") || filename.startsWith("data:")) {
+    return filename;
+  }
+  const cleanFilename = filename.replace(/^\/+/, "");
+  if (cleanFilename.startsWith("uploads/")) {
+    return `${UPLOAD_BASE_URL.replace(/\/uploads\/?$/, "")}/${cleanFilename}`;
+  }
+  if (cleanFilename.startsWith(`${folder}/`)) {
+    return `${UPLOAD_BASE_URL}/${cleanFilename}`;
+  }
+  return `${UPLOAD_BASE_URL}/${folder}/${cleanFilename}`;
+};
+
 export default API_ENDPOINTS;
+

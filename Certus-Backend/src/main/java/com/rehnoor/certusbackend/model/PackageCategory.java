@@ -1,47 +1,38 @@
 package com.rehnoor.certusbackend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
+@Table(name = "package_categories")
 @Entity
-@Table(name="packages")
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
-public class Package {
+public class PackageCategory {
     @Id
+    @Column(name="category_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "package_id")
-    private Long packageId;
+    private Long categoryId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="category_id")
-    private PackageCategory category;
-
-    @Column(name="number_of_tests")
-    private Integer numberOfTests;
-
-    @Column(nullable = false)
+    @Column(length = 100)
     private String name;
 
-    @Column(nullable = false)
-    private BigDecimal price;
-
-    @Column(name="status_available")
-    private Boolean statusAvailable;
+    @Column(name="status_available", nullable = false)
+    private Boolean statusAvailable = true;
 
     @Column(name="image_url")
     private String imageUrl;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name="created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name="updated_at", nullable = false)
     private ZonedDateTime updatedAt;
 
     @Column(name="display_order", nullable = false)
@@ -57,4 +48,6 @@ public class Package {
     public void preUpdate() {
         updatedAt = ZonedDateTime.now();
     }
+
+
 }
