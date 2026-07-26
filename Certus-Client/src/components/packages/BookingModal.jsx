@@ -53,10 +53,10 @@ export default function BookingModal({ isOpen, onClose, package: pkg }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
-      <div className="relative w-full max-w-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 border border-white/20 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-5 bg-white/5 border-b border-white/10 shrink-0">
+        <div className="flex items-center justify-between px-6 py-5 bg-slate-800 border-b border-slate-700 shrink-0">
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
               <span>Book Diagnostic Test</span>
@@ -273,14 +273,14 @@ export default function BookingModal({ isOpen, onClose, package: pkg }) {
                   <button
                     type="button"
                     onClick={handleResetAndClose}
-                    className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 font-semibold border border-white/15 transition-all text-sm"
+                    className="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-gray-300 font-semibold border border-slate-600 transition-colors text-sm"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={step === "submitting"}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-lg shadow-blue-600/30 transition-all transform hover:scale-105 disabled:opacity-50 text-sm flex items-center justify-center gap-2 min-w-[140px]"
+                    className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold shadow transition-colors disabled:opacity-50 text-sm flex items-center justify-center gap-2 min-w-[140px]"
                   >
                     {step === "submitting" ? (
                       <>
