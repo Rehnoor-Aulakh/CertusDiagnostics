@@ -26,9 +26,9 @@ export default function Packages() {
         categoryId: "",
         price: "",
         numberOfTests: "",
-        imageUrl: "",
         statusAvailable: true,
-        displayOrder: ""
+        displayOrder: "",
+        image: null
     });
 
     const [submitting, setSubmitting] = useState(false);
@@ -424,7 +424,7 @@ export default function Packages() {
             categoryId: presetCategoryId !== null && presetCategoryId !== undefined ? String(presetCategoryId) : "",
             price: "",
             numberOfTests: "",
-            imageUrl: "",
+            image: null,
             statusAvailable: true,
             displayOrder: ""
         });
@@ -438,7 +438,7 @@ export default function Packages() {
             categoryId: pkg.categoryId !== null && pkg.categoryId !== undefined ? String(pkg.categoryId) : "",
             price: pkg.price !== null && pkg.price !== undefined ? String(pkg.price) : "",
             numberOfTests: pkg.numberOfTests !== null && pkg.numberOfTests !== undefined ? String(pkg.numberOfTests) : "",
-            imageUrl: pkg.imageUrl || "",
+            image: null,
             statusAvailable: pkg.statusAvailable !== undefined ? pkg.statusAvailable : true,
             displayOrder: pkg.displayOrder !== null && pkg.displayOrder !== undefined ? String(pkg.displayOrder) : ""
         });
@@ -454,22 +454,33 @@ export default function Packages() {
                 : API_ENDPOINTS.packages;
             const method = editingPackage ? "PATCH" : "POST";
 
-            const payload = {
-                name: pkgForm.name,
-                categoryId: pkgForm.categoryId === "" || pkgForm.categoryId === "null" ? -1 : Number(pkgForm.categoryId),
-                price: pkgForm.price !== "" ? Number(pkgForm.price) : null,
-                numberOfTests: pkgForm.numberOfTests !== "" ? Number(pkgForm.numberOfTests) : null,
-                imageUrl: pkgForm.imageUrl,
-                statusAvailable: pkgForm.statusAvailable,
-                displayOrder: pkgForm.displayOrder !== "" ? Number(pkgForm.displayOrder) : null
-            };
+            const formData = new FormData();
+            formData.append("name", pkgForm.name);
+            if (pkgForm.categoryId !== "" && pkgForm.categoryId !== "null") {
+                formData.append("categoryId", Number(pkgForm.categoryId));
+            } else {
+                formData.append("categoryId", "-1");
+            }
+            if (pkgForm.price !== "") formData.append("price", pkgForm.price);
+            if (pkgForm.numberOfTests !== "") formData.append("numberOfTests", pkgForm.numberOfTests);
+            if (pkgForm.statusAvailable !== undefined) formData.append("statusAvailable", pkgForm.statusAvailable);
+            if (pkgForm.displayOrder !== "") formData.append("displayOrder", pkgForm.displayOrder);
+            if (pkgForm.image instanceof File) {
+                formData.append("image", pkgForm.image);
+            }
 
+            const token = JSON.parse(localStorage.getItem("adminUser"))?.token;
             const res = await fetch(url, {
                 method,
-                headers: getHeaders(),
-                body: JSON.stringify(payload)
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData
             });
-            if (!res.ok) throw new Error("Failed to save package details");
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || "Failed to save package details");
+            }
             closePackageModal();
             fetchData();
         } catch (err) {
@@ -781,14 +792,15 @@ export default function Packages() {
 
                             <div>
                                 <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                                    Flyer Brochure Image URL / Filename
+                                    Upload Flyer Brochure Image
                                 </label>
                                 <input
-                                    type="text"
-                                    placeholder="e.g. Hairfall_Package.jpeg"
-                                    value={pkgForm.imageUrl}
-                                    onChange={(e) => setPkgForm({ ...pkgForm, imageUrl: e.target.value })}
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                                    type="file"
+                                    accept=".jpeg, .jpg, .png"
+                                    onChange={(e) => {
+                                        setPkgForm({ ...pkgForm, image: e.target.files[0] });
+                                    }}
+                                    className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Flyer image stored in uploads/packages folder or full URL.</p>
                             </div>

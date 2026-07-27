@@ -18,16 +18,16 @@ export const getImageUrl = (filename, folder = "packages") => {
     filename.startsWith("https://") ||
     filename.startsWith("data:")
   ) {
-    return filename;
+    return encodeURI(filename);
   }
   const cleanFilename = filename.replace(/^\/+/, "");
   if (cleanFilename.startsWith("uploads/")) {
-    return `${UPLOAD_BASE_URL.replace(/\/uploads\/?$/, "")}/${cleanFilename}`;
+    return encodeURI(`${UPLOAD_BASE_URL.replace(/\/uploads\/?$/, "")}/${cleanFilename}`);
   }
   if (cleanFilename.startsWith(`${folder}/`)) {
-    return `${UPLOAD_BASE_URL}/${cleanFilename}`;
+    return encodeURI(`${UPLOAD_BASE_URL}/${cleanFilename}`);
   }
-  return `${UPLOAD_BASE_URL}/${folder}/${cleanFilename}`;
+  return encodeURI(`${UPLOAD_BASE_URL}/${folder}/${cleanFilename}`);
 };
 
 // Usage in components:

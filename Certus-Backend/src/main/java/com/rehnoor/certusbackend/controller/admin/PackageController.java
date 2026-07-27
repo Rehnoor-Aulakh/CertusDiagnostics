@@ -6,10 +6,13 @@ import com.rehnoor.certusbackend.dto.PackageResponseDTO;
 import com.rehnoor.certusbackend.model.Package;
 import com.rehnoor.certusbackend.service.PackageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -28,15 +31,15 @@ public class PackageController {
         return ResponseEntity.ok(Map.of("success", true, "data", packages));
     }
 
-    @PostMapping("")
-    public ResponseEntity<?> createPackage(@RequestBody PackageRequestDTO payload) {
-        packageService.createPackage(payload);
+    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createPackage(@ModelAttribute PackageRequestDTO payload, @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+        packageService.createPackage(payload, image);
         return ResponseEntity.ok(Map.of("success", true, "message", "Package created successfully!"));
     }
 
-    @PatchMapping("/{packageId}")
-    public ResponseEntity<?> updatePackage(@PathVariable Long packageId, @RequestBody PackageRequestDTO payload) {
-        packageService.updatePackage(packageId, payload);
+    @PatchMapping(value = "/{packageId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updatePackage(@PathVariable Long packageId, @ModelAttribute PackageRequestDTO payload, @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+        packageService.updatePackage(packageId, payload, image);
         return ResponseEntity.ok(Map.of("success", true, "message", "Package updated successfully!"));
     }
 

@@ -200,24 +200,19 @@ public class ReportIngestionService {
         }
         Files.createDirectories(Paths.get(uploadDirectory));
 
-        String filename = System.currentTimeMillis() + "_" + multipartFile.getOriginalFilename();
+        String rawFilename = System.currentTimeMillis() + "_" + (multipartFile.getOriginalFilename() != null ? multipartFile.getOriginalFilename() : "report.pdf");
+        String filename = rawFilename.replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9._-]", "_");
 
         Path destination = Paths.get(uploadDirectory, filename);
-
         Files.copy(multipartFile.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
-
         File pdfFile = destination.toFile();
-
         DiagnosticReport diagnosticReport = extractReport(pdfFile);
         DiagnosticMetadata metadata = diagnosticReport.getMetadata();
-
         if (metadata.getPatientName() == null || metadata.getPatientName().isBlank())
             throw new com.rehnoor.certusbackend.exception.ReportParsingException(
                     "Unable to extract patient information from PDF.");
-
         Patient patient = patientRepository.findByEmailIgnoreCase(email)
                 .orElseGet(() -> createPatient(metadata, email, phone));
-
         Report savedReport = saveReport(pdfFile, diagnosticReport, patient);
         // Refresh the cached health history
         healthHistoryService.rebuildHealthHistory(patient);
@@ -236,7 +231,8 @@ public class ReportIngestionService {
         }
         Files.createDirectories(Paths.get(uploadDirectory));
 
-        String filename = System.currentTimeMillis() + "_" + multipartFile.getOriginalFilename();
+        String rawFilename = System.currentTimeMillis() + "_" + (multipartFile.getOriginalFilename() != null ? multipartFile.getOriginalFilename() : "report.pdf");
+        String filename = rawFilename.replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9._-]", "_");
 
         Path destination = Paths.get(uploadDirectory, filename);
 

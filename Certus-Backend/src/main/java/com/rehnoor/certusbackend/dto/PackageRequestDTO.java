@@ -11,7 +11,6 @@ public class PackageRequestDTO {
     private Long categoryId;
     private String name;
     private Integer numberOfTests;
-    private String imageUrl;
     private BigDecimal price;
     private Boolean statusAvailable;
     private Integer displayOrder;

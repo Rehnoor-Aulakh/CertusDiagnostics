@@ -7,12 +7,23 @@ import com.rehnoor.certusbackend.model.Package;
 import com.rehnoor.certusbackend.repository.PackageCategoryRepository;
 import com.rehnoor.certusbackend.repository.PackageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 @Service
 public class PackageService {
+    @Value("${app.package.directory}")
+    private String packageDirectory;
+
     @Autowired
     private PackageRepository packageRepository;
 
@@ -35,12 +46,14 @@ public class PackageService {
                 .toList();
     }
 
-    public void createPackage(PackageRequestDTO payload) {
+    public void createPackage(PackageRequestDTO payload, MultipartFile image) throws IOException {
         Package pkg = new Package();
         pkg.setName(payload.getName());
+        if(image != null && !image.isEmpty()) {
+            addImage(image, pkg);
+        }
         pkg.setPrice(payload.getPrice());
         pkg.setNumberOfTests(payload.getNumberOfTests());
-        pkg.setImageUrl(payload.getImageUrl());
         pkg.setStatusAvailable(payload.getStatusAvailable() != null ? payload.getStatusAvailable() : true);
         pkg.setDisplayOrder(payload.getDisplayOrder() != null ? payload.getDisplayOrder() : packageRepository.findMaxDisplayOrder() + 1);
 
@@ -51,14 +64,26 @@ public class PackageService {
         }
         packageRepository.save(pkg);
     }
-
-    public void updatePackage(Long packageId, PackageRequestDTO payload) {
+    private void addImage(MultipartFile image, Package pkg) throws IOException {
+        Files.createDirectories(Paths.get(packageDirectory));
+        String rawName = (pkg.getName() != null ? pkg.getName() : "package") + "_" + System.currentTimeMillis() + "_" + (image.getOriginalFilename() != null ? image.getOriginalFilename() : "image.jpg");
+        String filename = rawName.replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9._-]", "_");
+        Path destination = Paths.get(packageDirectory, filename);
+        Files.copy(image.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+        // the file is now saved, you need to add the imageUrl to the database
+        File imageFile = destination.toFile();
+        pkg.setImageUrl(imageFile.getName());
+    }
+    public void updatePackage(Long packageId, PackageRequestDTO payload, MultipartFile image) throws IOException {
         Package pkg = packageRepository.findById(packageId)
                 .orElseThrow(() -> new RuntimeException("Package not found"));
         if (payload.getName() != null) pkg.setName(payload.getName());
+        if(image != null && !image.isEmpty()) {
+            // then the image is being updated too, so we need to call the add image function
+            addImage(image, pkg);
+        }
         if (payload.getPrice() != null) pkg.setPrice(payload.getPrice());
         if (payload.getNumberOfTests() != null) pkg.setNumberOfTests(payload.getNumberOfTests());
-        if (payload.getImageUrl() != null) pkg.setImageUrl(payload.getImageUrl());
         if (payload.getStatusAvailable() != null) pkg.setStatusAvailable(payload.getStatusAvailable());
         if (payload.getDisplayOrder() != null) pkg.setDisplayOrder(payload.getDisplayOrder());
 
