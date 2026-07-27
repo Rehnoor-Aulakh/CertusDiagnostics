@@ -19,6 +19,8 @@ node_modules
 .env.production.local
 .env.*
 !.env.example
+!Certus-Admin/.env
+!Certus-Client/.env
 
 # Editor directories and files
 .vscode/*

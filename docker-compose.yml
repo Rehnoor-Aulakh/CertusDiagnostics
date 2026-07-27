@@ -1,5 +1,6 @@
 services:
   client:
+    image: rehnooraulakh/certus-client:latest
     build:
       context: ./Certus-Client
     container_name: certus-client
@@ -8,6 +9,7 @@ services:
       - backend
 
   admin:
+    image: rehnooraulakh/certus-admin:latest
     build:
       context: ./Certus-Admin
     container_name: certus-admin
@@ -16,6 +18,7 @@ services:
       - backend
 
   backend:
+    image: rehnooraulakh/certus-backend:latest
     env_file:
       - .env
     build:

@@ -18,7 +18,7 @@ RUN ./mvnw clean package -DskipTests
 # Docker would now run the mvnw clean package command, which will build the jar file in the target folder
 # target/certus-backend.jar
 
-# Runtime Stage
+# Runtime Stage 
 # Linux + Java Runtime
 FROM eclipse-temurin:17-jre
 WORKDIR /app
