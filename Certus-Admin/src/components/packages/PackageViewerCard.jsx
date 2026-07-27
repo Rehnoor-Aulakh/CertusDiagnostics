@@ -66,6 +66,14 @@ export default function PackageViewerCard({
         e.preventDefault();
         e.stopPropagation();
         setShowZoomModal(false);
+      } else if (e.key === "+" || e.key === "=" || e.code === "NumpadAdd") {
+        e.preventDefault();
+        e.stopPropagation();
+        zoomIn();
+      } else if (e.key === "-" || e.key === "_" || e.code === "NumpadSubtract") {
+        e.preventDefault();
+        e.stopPropagation();
+        zoomOut();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -233,11 +241,12 @@ export default function PackageViewerCard({
     <>
       <div
         onClick={handleSelection}
-        className={`group relative bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border 
+        className={`group relative rounded-3xl transition-all duration-300 overflow-hidden flex 
       ${isSelected
-          ? "border-2 border-blue-600 ring-4 ring-blue-300"
-          : "border border-gray-100"} 
-        overflow-hidden flex
+          ? "border-2 border-blue-600 ring-4 ring-blue-500/50 shadow-xl shadow-blue-500/20 bg-blue-50/10"
+          : isEditMode
+            ? "border-2 border-dashed border-gray-400 hover:border-blue-500 bg-white shadow-sm"
+            : "border border-gray-100 bg-white shadow-sm hover:shadow-xl"} 
       ${isVertical ? "flex-col md:flex-row items-stretch" : "flex-col"}
       h-full transform hover:-translate-y-1`}
       >
@@ -269,27 +278,35 @@ export default function PackageViewerCard({
                 onClick={zoomOut}
                 disabled={zoomLevel <= 1.001}
                 className="p-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-lg border border-gray-700"
-                title="Zoom Out"
+                title="Zoom Out (-)"
               >
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
                 </svg>
               </button>
-              <button
-                onClick={resetZoom}
-                className="px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-bold border border-gray-700"
-                title="Reset Zoom"
-              >
-                100%
-              </button>
+              
+              <span className="text-xs font-bold text-gray-200 px-3 py-2 min-w-[3.5rem] text-center bg-gray-800 rounded-lg border border-gray-700">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+
               <button
                 onClick={zoomIn}
                 disabled={zoomLevel >= 1.499}
                 className="p-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-lg border border-gray-700"
-                title="Zoom In"
+                title="Zoom In (+)"
               >
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+
+              <button
+                onClick={resetZoom}
+                className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 text-white"
+                title="Reset Zoom"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
               <div className="w-px h-6 bg-gray-700 mx-2" />

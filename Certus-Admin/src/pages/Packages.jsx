@@ -338,6 +338,30 @@ export default function Packages() {
     // ==========================================
 
     // Category Modal
+    const closeCategoryModal = () => {
+        setShowCategoryModal(false);
+        setSelectedItem(null);
+    };
+
+    const closePackageModal = () => {
+        setShowPackageModal(false);
+        setSelectedItem(null);
+    };
+
+    useEffect(() => {
+        if (!showCategoryModal && !showPackageModal) return;
+        const handleModalKeyDown = (e) => {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+                if (showCategoryModal) closeCategoryModal();
+                if (showPackageModal) closePackageModal();
+            }
+        };
+        window.addEventListener("keydown", handleModalKeyDown);
+        return () => window.removeEventListener("keydown", handleModalKeyDown);
+    }, [showCategoryModal, showPackageModal]);
+
     const openNewCategoryModal = () => {
         setEditingCategory(null);
         setCatForm({ name: "", imageUrl: "", status: true });
@@ -369,7 +393,7 @@ export default function Packages() {
                 body: JSON.stringify(catForm)
             });
             if (!res.ok) throw new Error("Failed to save category");
-            setShowCategoryModal(false);
+            closeCategoryModal();
             fetchData();
         } catch (err) {
             alert(err.message);
@@ -446,7 +470,7 @@ export default function Packages() {
                 body: JSON.stringify(payload)
             });
             if (!res.ok) throw new Error("Failed to save package details");
-            setShowPackageModal(false);
+            closePackageModal();
             fetchData();
         } catch (err) {
             alert(err.message);
@@ -537,7 +561,10 @@ export default function Packages() {
 
                     {/* Switch Mode Button */}
                     <button
-                        onClick={() => setIsEditMode(!isEditMode)}
+                        onClick={() => {
+                            setIsEditMode(!isEditMode);
+                            setSelectedItem(null);
+                        }}
                         className="bg-gray-900 text-white px-4 py-2 rounded-xl hover:bg-black transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
                     >
                         <span>{isEditMode ? "Save Changes" : "Switch to Edit Mode"}</span>
@@ -646,7 +673,7 @@ export default function Packages() {
                             <div className="pt-4 flex items-center justify-end space-x-3 border-t border-gray-100">
                                 <button
                                     type="button"
-                                    onClick={() => setShowCategoryModal(false)}
+                                    onClick={closeCategoryModal}
                                     className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
                                 >
                                     Cancel
@@ -782,7 +809,7 @@ export default function Packages() {
                             <div className="pt-4 flex items-center justify-end space-x-3 border-t border-gray-100">
                                 <button
                                     type="button"
-                                    onClick={() => setShowPackageModal(false)}
+                                    onClick={closePackageModal}
                                     className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition-colors"
                                 >
                                     Cancel

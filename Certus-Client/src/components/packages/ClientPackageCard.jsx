@@ -91,10 +91,10 @@ export default function ClientPackageCard({ package: pkg, categoryName }) {
         alt={pkg.name || "Package Flyer"}
         onLoad={handleImageLoad}
         onError={() => setImgError(true)}
-        className={`w-full object-cover transition-all duration-700 ease-out group-hover/img:scale-105 ${
+        className={`w-full object-cover transition-all duration-300 ease-out group-hover/img:scale-105 ${
           !imgLoaded || imgError
-            ? "opacity-0 scale-95 blur-md"
-            : "opacity-100 scale-100 blur-0"
+            ? "opacity-0"
+            : "opacity-100"
         } ${isVertical ? "h-[360px] md:h-full min-h-[300px]" : "h-auto max-h-[400px]"}`}
       />
       {/* Zoom indicator pill on hover */}

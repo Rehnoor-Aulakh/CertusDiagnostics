@@ -105,11 +105,13 @@ export default function PackageCategorySection({
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`transition-all duration-300 rounded-3xl p-6 md:p-8 bg-white border ${isDragOverCategory
-                    ? "border-blue-500 bg-blue-50/20 ring-4 ring-blue-500/20 scale-[1.01]"
+                className={`transition-all duration-300 rounded-3xl p-6 md:p-8 ${isDragOverCategory
+                    ? "border-2 border-blue-500 bg-blue-50/20 ring-4 ring-blue-500/20 scale-[1.01]"
                     : isSelected
-                        ? "border-blue-600 ring-4 ring-blue-300 shadow-sm"
-                        : "border-gray-100/80 shadow-sm hover:shadow-md"
+                        ? "border-2 border-blue-600 ring-4 ring-blue-500/50 shadow-xl shadow-blue-500/20 bg-blue-50/10"
+                        : isEditMode
+                            ? "border-2 border-dashed border-gray-300 hover:border-blue-400 bg-white shadow-sm"
+                            : "border border-gray-100/80 bg-white shadow-sm hover:shadow-md"
                     }`}
             >
                 {/* Category Header Bar */}

@@ -23,18 +23,27 @@ export default function PackageZoomModal({
     setImgLoaded(false);
   }, [imageUrl, isOpen]);
 
-  // Close on Escape or Enter key press
+  // Close on Escape or Enter key press, zoom on + or -
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.key === "Escape" || e.key === "Enter") && isOpen) {
+      if (!isOpen) return;
+      if (e.key === "Escape" || e.key === "Enter") {
         e.preventDefault();
         e.stopPropagation();
         onClose();
+      } else if (e.key === "+" || e.key === "=" || e.code === "NumpadAdd") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onZoomIn) onZoomIn();
+      } else if (e.key === "-" || e.key === "_" || e.code === "NumpadSubtract") {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onZoomOut) onZoomOut();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, onZoomIn, onZoomOut]);
 
   if (!isOpen || !pkg) return null;
 
@@ -43,7 +52,7 @@ export default function PackageZoomModal({
     : "Price on Request";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 md:p-6 animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 md:p-6">
       {/* Lightbox Container */}
       <div className="relative w-full max-w-5xl max-h-[92vh] bg-slate-900/95 border border-white/20 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
         
@@ -112,26 +121,14 @@ export default function PackageZoomModal({
         {/* Image Scroll / Pan Area */}
         <div className="flex-1 overflow-auto p-4 md:p-8 flex items-center justify-center bg-black/40 relative min-h-[50vh]">
           {imageUrl ? (
-            <div className="transition-transform duration-200 ease-out origin-center flex items-center justify-center relative">
-              {!imgLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 transition-opacity duration-500">
-                  <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
-              <img
-                src={imageUrl}
-                alt={pkg.name || "Package Flyer"}
-                onLoad={() => setImgLoaded(true)}
-                style={{
-                  transform: `scale(${zoomLevel})`,
-                  maxHeight: zoomLevel === 1 ? "75vh" : "none",
-                  maxWidth: zoomLevel === 1 ? "100%" : "none",
-                }}
-                className={`rounded-2xl shadow-2xl border border-white/15 object-contain transition-all duration-700 ease-out ${
-                  !imgLoaded ? "opacity-0 scale-95 blur-md" : "opacity-100 scale-100 blur-0"
-                }`}
-              />
-            </div>
+            <img
+              src={imageUrl}
+              alt={pkg.name || "Package Flyer"}
+              onLoad={() => setImgLoaded(true)}
+              style={{ transform: `scale(${zoomLevel})`, transition: "transform 0.2s ease-out" }}
+              className="max-w-full max-h-[75vh] object-contain select-none cursor-grab active:cursor-grabbing rounded"
+              draggable={false}
+            />
           ) : (
             <div className="text-center py-20 px-4">
               <div className="w-16 h-16 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center mx-auto mb-4 text-gray-500">
