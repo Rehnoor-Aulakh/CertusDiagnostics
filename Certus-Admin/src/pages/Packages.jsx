@@ -393,6 +393,9 @@ export default function Packages() {
             }
             formData.append("status", catForm.status);
             formData.append("statusAvailable", catForm.status);
+            if (!editingCategory) {
+                formData.append("displayOrder", String(allCategoriesList.length));
+            }
 
             const token = JSON.parse(localStorage.getItem("adminUser"))?.token;
             const res = await fetch(url, {
@@ -477,7 +480,16 @@ export default function Packages() {
             if (pkgForm.price !== "") formData.append("price", pkgForm.price);
             if (pkgForm.numberOfTests !== "") formData.append("numberOfTests", pkgForm.numberOfTests);
             if (pkgForm.statusAvailable !== undefined) formData.append("statusAvailable", pkgForm.statusAvailable);
-            if (pkgForm.displayOrder !== "") formData.append("displayOrder", pkgForm.displayOrder);
+            
+            let orderToSave = pkgForm.displayOrder;
+            if (!editingPackage || orderToSave === "" || orderToSave === null || orderToSave === undefined) {
+                const targetCatId = pkgForm.categoryId !== "" && pkgForm.categoryId !== "null" ? Number(pkgForm.categoryId) : null;
+                const targetCat = packageData.find(c => Number(c.categoryId) === targetCatId);
+                const count = targetCat && targetCat.packages ? targetCat.packages.length : 0;
+                orderToSave = String(count);
+            }
+            formData.append("displayOrder", orderToSave);
+
             if (pkgForm.image instanceof File) {
                 formData.append("image", pkgForm.image);
             }
@@ -774,32 +786,17 @@ export default function Packages() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                                        Number of Tests Included
-                                    </label>
-                                    <input
-                                        type="number"
-                                        placeholder="51"
-                                        value={pkgForm.numberOfTests}
-                                        onChange={(e) => setPkgForm({ ...pkgForm, numberOfTests: e.target.value })}
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                                        Display Order #
-                                    </label>
-                                    <input
-                                        type="number"
-                                        placeholder="Auto (0, 1, 2...)"
-                                        value={pkgForm.displayOrder}
-                                        onChange={(e) => setPkgForm({ ...pkgForm, displayOrder: e.target.value })}
-                                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
+                                    Number of Tests Included
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="51"
+                                    value={pkgForm.numberOfTests}
+                                    onChange={(e) => setPkgForm({ ...pkgForm, numberOfTests: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
+                                />
                             </div>
 
                             <div>
