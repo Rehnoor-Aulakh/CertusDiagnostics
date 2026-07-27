@@ -105,11 +105,11 @@ export default function PackageViewerCard({
         className={`${isLeftColumn
           ? "w-full md:w-64 lg:w-72 min-h-[240px] border-b md:border-b-0 md:border-r border-gray-200"
           : "w-full h-64 border-t border-gray-200"
-          } bg-gray-900 relative cursor-zoom-in overflow-hidden group flex items-center justify-center p-2`}
+          } bg-white relative cursor-zoom-in overflow-hidden group flex items-center justify-center`}
         title="Click to zoom flyer contents"
       >
         {!imgLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10 transition-opacity duration-500">
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10 transition-opacity duration-500">
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}

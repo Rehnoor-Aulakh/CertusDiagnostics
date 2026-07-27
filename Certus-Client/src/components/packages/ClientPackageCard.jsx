@@ -76,10 +76,10 @@ export default function ClientPackageCard({ package: pkg, categoryName }) {
   const renderImageElement = (extraClassName = "") => (
     <div
       onClick={handleOpenZoom}
-      className={`relative rounded-xl overflow-hidden bg-slate-900/80 border border-slate-700/80 shadow-md group/img cursor-pointer transition-all duration-500 hover:border-slate-500 flex items-center justify-center ${extraClassName}`}
+      className={`relative rounded-xl overflow-hidden bg-transparent border border-slate-700/80 shadow-md group/img cursor-pointer transition-all duration-500 hover:border-slate-500 flex items-center justify-center ${extraClassName}`}
     >
       {!imgLoaded && !imgError && (
-        <div className="absolute inset-0 bg-slate-900/80 animate-pulse flex items-center justify-center text-gray-400 text-xs z-10 transition-opacity duration-500">
+        <div className="absolute inset-0 bg-slate-800/80 animate-pulse flex items-center justify-center text-gray-400 text-xs z-10 transition-opacity duration-500">
           <div className="flex flex-col items-center gap-2">
             <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             <span>Loading flyer...</span>
