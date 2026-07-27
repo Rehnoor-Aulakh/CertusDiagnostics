@@ -43,6 +43,9 @@ jobs:
       - name: Deploy latest images
         run: |
           cd /home/ubuntu/CertusDiagnostics
+          git fetch origin
+          git checkout deploy-to-ec2
+          git pull origin deploy-to-ec2
           docker compose pull
           docker compose up -d --remove-orphans
           docker image prune -af
