@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import PackageViewerCard from "./PackageViewerCard";
+import { getImageUrl } from "../../utils/api";
 
 /**
  * Package Category Section Component
@@ -26,6 +27,7 @@ export default function PackageCategorySection({
     setSelectedItem
 }) {
     const [isDragOverCategory, setIsDragOverCategory] = useState(false);
+    const categoryImage = getImageUrl(category?.imageUrl, "package-category") || getImageUrl(category?.imageUrl, "package-categories") || getImageUrl(category?.imageUrl, "categories");
 
     const handleDragOver = (e) => {
         if (!isEditMode) return;
@@ -114,13 +116,24 @@ export default function PackageCategorySection({
                             : "border border-gray-100/80 bg-white shadow-sm hover:shadow-md"
                     }`}
             >
-                {/* Category Header Bar */}
-                < div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4 mb-6" >
-                    <div className="flex items-center space-x-3">
+                {/* Compact Horizontal Category Banner Image - Shrunk to Fit Cleanly Without Borders */}
+                {categoryImage && (
+                    <div className="flex justify-start mb-5">
+                        <img 
+                            src={categoryImage} 
+                            alt={category.name} 
+                            className="max-h-36 sm:max-h-44 md:max-h-52 w-auto object-contain rounded-2xl shadow-sm border border-gray-200/80 bg-transparent" 
+                        />
+                    </div>
+                )}
+
+                {/* Category Header Bar (Name hidden when image is available) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4 mb-6">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
                         {/* Drag Handle Icon for Category (Edit Mode) */}
                         {isEditMode && category.categoryId !== null && (
                             <div
-                                className="p-1.5 rounded bg-gray-100 text-gray-600 cursor-grab active:cursor-grabbing hover:bg-gray-200 transition-colors"
+                                className="p-1.5 rounded bg-gray-100 text-gray-600 cursor-grab active:cursor-grabbing hover:bg-gray-200 transition-colors shrink-0"
                                 title="Drag to reorder category"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,9 +143,11 @@ export default function PackageCategorySection({
                         )}
 
                         <div className="flex items-center space-x-3">
-                            <h2 className="text-xl font-bold text-gray-900">
-                                {category.name}
-                            </h2>
+                            {!categoryImage && (
+                                <h2 className="text-xl font-bold text-gray-900">
+                                    {category.name}
+                                </h2>
+                            )}
                             <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold rounded-full">
                                 {category.packages?.length || 0} {category.packages?.length === 1 ? "Package" : "Packages"}
                             </span>

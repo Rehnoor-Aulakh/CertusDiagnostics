@@ -16,11 +16,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/packages/**")
                 .addResourceLocations("file:./uploads/packages/", "file:../uploads/packages/", "file:/app/uploads/packages/");
 
-        registry.addResourceHandler("/uploads/package-categories/**")
-                .addResourceLocations("file:./uploads/package-categories/", "file:../uploads/package-categories/", "file:/app/uploads/package-categories/");
-
-        registry.addResourceHandler("/uploads/categories/**")
-                .addResourceLocations("file:./uploads/categories/", "file:../uploads/categories/", "file:/app/uploads/categories/");
+        registry.addResourceHandler("/uploads/package-category/**", "/uploads/package-categories/**", "/uploads/categories/**")
+                .addResourceLocations(
+                        "file:./uploads/package-category/", "file:../uploads/package-category/", "file:/app/uploads/package-category/",
+                        "file:./uploads/package-categories/", "file:../uploads/package-categories/", "file:/app/uploads/package-categories/",
+                        "file:./uploads/categories/", "file:../uploads/categories/", "file:/app/uploads/categories/",
+                        "file:./uploads/packages/", "file:../uploads/packages/", "file:/app/uploads/packages/"
+                );
 
         registry.addResourceHandler("/uploads/images/**")
                 .addResourceLocations("file:./uploads/images/", "file:../uploads/images/", "file:/app/uploads/images/");

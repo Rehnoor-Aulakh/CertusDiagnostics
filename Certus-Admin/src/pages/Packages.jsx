@@ -17,7 +17,7 @@ export default function Packages() {
     // Modals State
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null); // null = new
-    const [catForm, setCatForm] = useState({ name: "", imageUrl: "", status: true });
+    const [catForm, setCatForm] = useState({ name: "", image: "", status: true });
 
     const [showPackageModal, setShowPackageModal] = useState(false);
     const [editingPackage, setEditingPackage] = useState(null); // null = new
@@ -364,7 +364,7 @@ export default function Packages() {
 
     const openNewCategoryModal = () => {
         setEditingCategory(null);
-        setCatForm({ name: "", imageUrl: "", status: true });
+        setCatForm({ name: "", image: null, status: true });
         setShowCategoryModal(true);
     };
 
@@ -372,7 +372,7 @@ export default function Packages() {
         setEditingCategory(cat);
         setCatForm({
             name: cat.name || "",
-            imageUrl: cat.imageUrl || "",
+            image: null,
             status: cat.statusAvailable !== undefined ? cat.statusAvailable : true
         });
         setShowCategoryModal(true);
@@ -386,13 +386,26 @@ export default function Packages() {
                 ? `${API_ENDPOINTS.packageCategories}/${editingCategory.categoryId}`
                 : API_ENDPOINTS.packageCategories;
             const method = editingCategory ? "PATCH" : "POST";
+            const formData = new FormData();
+            formData.append("name", catForm.name);
+            if (catForm.image instanceof File) {
+                formData.append("image", catForm.image);
+            }
+            formData.append("status", catForm.status);
+            formData.append("statusAvailable", catForm.status);
 
+            const token = JSON.parse(localStorage.getItem("adminUser"))?.token;
             const res = await fetch(url, {
                 method,
-                headers: getHeaders(),
-                body: JSON.stringify(catForm)
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData
             });
-            if (!res.ok) throw new Error("Failed to save category");
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || "Failed to save category");
+            }
             closeCategoryModal();
             fetchData();
         } catch (err) {
@@ -656,13 +669,12 @@ export default function Packages() {
 
                             <div>
                                 <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
-                                    Image URL / Filename (Optional)
+                                    Upload Category Image
                                 </label>
                                 <input
-                                    type="text"
-                                    placeholder="e.g. category_icon.png or https://..."
-                                    value={catForm.imageUrl}
-                                    onChange={(e) => setCatForm({ ...catForm, imageUrl: e.target.value })}
+                                    type="file"
+                                    accept=".jpeg, .jpg, .png"
+                                    onChange={(e) => setCatForm({ ...catForm, image: e.target.files[0] })}
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900 outline-none"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Leave blank if no image is needed.</p>
