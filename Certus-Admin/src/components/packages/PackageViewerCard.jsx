@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getImageUrl } from "../../utils/api";
 
 /**
@@ -12,7 +12,9 @@ export default function PackageViewerCard({
   onEdit,
   onDelete,
   isEditMode = false,
-  dragHandleProps = null
+  dragHandleProps = null,
+  selectedItem = null,
+  setSelectedItem
 }) {
   const [isVertical, setIsVertical] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -45,9 +47,31 @@ export default function PackageViewerCard({
     }
   };
 
-  const zoomIn = () => setZoomLevel((prev) => Math.min(prev + 0.5, 3));
-  const zoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.5, 0.5));
+  const ZOOM_LEVELS = [1, 1.1, 1.25, 1.5];
+  const zoomIn = () => setZoomLevel((prev) => {
+    const next = ZOOM_LEVELS.find((z) => z > prev + 0.001);
+    return next !== undefined ? next : prev;
+  });
+  const zoomOut = () => setZoomLevel((prev) => {
+    const reversed = [...ZOOM_LEVELS].reverse();
+    const next = reversed.find((z) => z < prev - 0.001);
+    return next !== undefined ? next : prev;
+  });
   const resetZoom = () => setZoomLevel(1);
+
+  useEffect(() => {
+    if (!showZoomModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" || e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowZoomModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showZoomModal]);
+
 
   // Fallback Placeholder when image is missing or errors out - clean medical gray box with black text
   const renderPlaceholderImage = () => (
@@ -112,6 +136,8 @@ export default function PackageViewerCard({
       </div>
     );
   };
+
+  const isSelected = selectedItem?.type === "PACKAGE" && selectedItem?.id === pkg.packageId;
 
   // Render Content Details Box
   const renderContentBox = () => (
@@ -192,10 +218,29 @@ export default function PackageViewerCard({
     </div>
   );
 
+  const handleSelection = (e) => {
+    if (!isEditMode) return;
+    e.stopPropagation();
+    if (setSelectedItem) {
+      setSelectedItem({
+        type: "PACKAGE",
+        id: pkg.packageId
+      });
+    }
+  };
+
   return (
     <>
-      <div className={`group relative bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100/80 overflow-hidden flex ${isVertical ? "flex-col md:flex-row items-stretch" : "flex-col"
-        } h-full transform hover:-translate-y-1`}>
+      <div
+        onClick={handleSelection}
+        className={`group relative bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border 
+      ${isSelected
+          ? "border-2 border-blue-600 ring-4 ring-blue-300"
+          : "border border-gray-100"} 
+        overflow-hidden flex
+      ${isVertical ? "flex-col md:flex-row items-stretch" : "flex-col"}
+      h-full transform hover:-translate-y-1`}
+      >
         {isVertical ? (
           <>
             {renderImageBox(true)}
@@ -216,13 +261,13 @@ export default function PackageViewerCard({
             <div className="flex items-center space-x-2 bg-gray-800 px-4 py-2 rounded-lg border border-gray-700">
               <span className="font-bold text-sm">{pkg.name}</span>
               <span className="text-gray-400">|</span>
-              <span className="text-xs text-blue-400 font-semibold">{zoomLevel * 100}% Zoom</span>
+              <span className="text-xs text-blue-400 font-semibold">{Math.round(zoomLevel * 100)}% Zoom</span>
             </div>
 
             <div className="flex items-center space-x-2">
               <button
                 onClick={zoomOut}
-                disabled={zoomLevel <= 0.5}
+                disabled={zoomLevel <= 1.001}
                 className="p-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-lg border border-gray-700"
                 title="Zoom Out"
               >
@@ -239,7 +284,7 @@ export default function PackageViewerCard({
               </button>
               <button
                 onClick={zoomIn}
-                disabled={zoomLevel >= 3}
+                disabled={zoomLevel >= 1.499}
                 className="p-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-40 rounded-lg border border-gray-700"
                 title="Zoom In"
               >

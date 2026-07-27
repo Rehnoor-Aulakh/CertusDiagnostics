@@ -23,10 +23,12 @@ export default function PackageZoomModal({
     setImgLoaded(false);
   }, [imageUrl, isOpen]);
 
-  // Close on Escape key press
+  // Close on Escape or Enter key press
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen) {
+      if ((e.key === "Escape" || e.key === "Enter") && isOpen) {
+        e.preventDefault();
+        e.stopPropagation();
         onClose();
       }
     };
@@ -68,7 +70,7 @@ export default function PackageZoomModal({
             <div className="flex items-center bg-slate-700/60 border border-white/10 rounded-xl p-1 space-x-1">
               <button
                 onClick={onZoomOut}
-                disabled={zoomLevel <= 0.5}
+                disabled={zoomLevel <= 1.001}
                 className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-600/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 title="Zoom Out"
               >
@@ -81,7 +83,7 @@ export default function PackageZoomModal({
 
               <button
                 onClick={onZoomIn}
-                disabled={zoomLevel >= 3}
+                disabled={zoomLevel >= 1.499}
                 className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-600/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 title="Zoom In"
               >

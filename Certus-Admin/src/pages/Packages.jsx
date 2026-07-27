@@ -6,6 +6,7 @@ export default function Packages() {
     const [packageData, setPackageData] = useState([]);
     const [allCategoriesList, setAllCategoriesList] = useState([]);
     const [allPackagesList, setAllPackagesList] = useState([]);
+    const [selectedItem, setSelectedItem] = useState(null);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -31,6 +32,7 @@ export default function Packages() {
     });
 
     const [submitting, setSubmitting] = useState(false);
+    const noOfCols = 2;
 
     const getHeaders = () => {
         const token = JSON.parse(localStorage.getItem("adminUser"))?.token;
@@ -92,6 +94,122 @@ export default function Packages() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    useEffect(() => {
+        if (!isEditMode) return;
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                setSelectedItem(null);
+                return;
+            }
+            if (!selectedItem) return;
+
+            if (e.key === "Enter") {
+                e.preventDefault();
+                if (selectedItem.type === "CATEGORY") {
+                    const cat = packageData.find((c) => c.categoryId === selectedItem.id);
+                    if (cat && cat.categoryId !== null) openEditCategoryModal(cat);
+                } else if (selectedItem.type === "PACKAGE") {
+                    let foundPkg = null;
+                    packageData.forEach((c) => {
+                        const p = (c.packages || []).find((pkg) => pkg.packageId === selectedItem.id);
+                        if (p) foundPkg = p;
+                    });
+                    if (foundPkg) openEditPackageModal(foundPkg);
+                }
+                return;
+            }
+
+            if (selectedItem.type === "CATEGORY") {
+                const index = packageData.findIndex((cat) => cat.categoryId === selectedItem.id);
+                if (index === -1) return;
+
+                let newIndex = index;
+                if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                    newIndex = index - 1;
+                } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+                    newIndex = index + 1;
+                } else {
+                    return;
+                }
+
+                if (newIndex < 0 || newIndex >= packageData.length) return;
+                if (packageData[newIndex].categoryId === null) return;
+
+                e.preventDefault();
+                const newArr = handleSwap(packageData, index, newIndex);
+                setPackageData(newArr);
+
+                const validCategories = newArr.filter((c) => c.categoryId !== null);
+                const orderPayload = validCategories.map((cat, idx) => ({
+                    categoryId: cat.categoryId,
+                    displayOrder: idx
+                }));
+                fetch(API_ENDPOINTS.reorderCategories, {
+                    method: "PUT",
+                    headers: getHeaders(),
+                    body: JSON.stringify(orderPayload)
+                }).catch((err) => console.error("Keyboard reorder category error:", err));
+            } else if (selectedItem.type === "PACKAGE") {
+                const categoryIndex = packageData.findIndex((cat) =>
+                    (cat.packages || []).some((pkg) => pkg.packageId === selectedItem.id)
+                );
+                if (categoryIndex === -1) return;
+
+                const categoryObj = packageData[categoryIndex];
+                const packageIndex = (categoryObj.packages || []).findIndex((pkg) => pkg.packageId === selectedItem.id);
+                if (packageIndex === -1) return;
+
+                const categoryPackages = categoryObj.packages || [];
+                let newIndex = packageIndex;
+                if (e.key === "ArrowUp") {
+                    newIndex = packageIndex - noOfCols;
+                } else if (e.key === "ArrowDown") {
+                    // if the packageIndex + noOfCols is unavailable, swap it with the last available package
+                    if (packageIndex + noOfCols >= categoryPackages.length) {
+                        newIndex = categoryPackages.length - 1;
+                    } else {
+                        newIndex = packageIndex + noOfCols;
+                    }
+                } else if (e.key === "ArrowLeft") {
+                    newIndex = packageIndex - 1;
+                } else if (e.key === "ArrowRight") {
+                    newIndex = packageIndex + 1;
+                } else {
+                    return;
+                }
+
+                if (newIndex < 0 || newIndex >= categoryPackages.length || newIndex === packageIndex) return;
+
+                e.preventDefault();
+                const swapped = handleSwap(categoryPackages, packageIndex, newIndex);
+                const updatedPackageData = packageData.map((cat, idx) =>
+                    idx === categoryIndex ? { ...cat, packages: swapped } : cat
+                );
+                setPackageData(updatedPackageData);
+
+                const orderPayload = swapped.map((pkg, idx) => ({
+                    packageId: pkg.packageId,
+                    displayOrder: idx
+                }));
+                fetch(API_ENDPOINTS.reorderPackages, {
+                    method: "PUT",
+                    headers: getHeaders(),
+                    body: JSON.stringify(orderPayload)
+                }).catch((err) => console.error("Keyboard reorder package error:", err));
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selectedItem, packageData, isEditMode]);
+
+    // Swap handler for Arrow clicks
+    const handleSwap = (arr, i, j) => {
+        if (i < 0 || j < 0 || i >= arr.length || j >= arr.length) return arr;
+        const newArr = [...arr];
+        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        return newArr;
+    };
 
     // ==========================================
     // DRAG AND DROP REORDERING HANDLERS
@@ -422,7 +540,7 @@ export default function Packages() {
                         onClick={() => setIsEditMode(!isEditMode)}
                         className="bg-gray-900 text-white px-4 py-2 rounded-xl hover:bg-black transition-colors text-sm font-medium flex items-center gap-2 shadow-sm"
                     >
-                        <span>{isEditMode ? "Done Editing (View Mode)" : "Switch to Edit Mode"}</span>
+                        <span>{isEditMode ? "Save Changes" : "Switch to Edit Mode"}</span>
                     </button>
                 </div>
             </div>
@@ -466,6 +584,8 @@ export default function Packages() {
                             onDeletePackage={handleDeletePackage}
                             onCategoryDrop={handleCategoryDrop}
                             onPackageDrop={handlePackageDrop}
+                            selectedItem={selectedItem}
+                            setSelectedItem={setSelectedItem}
                         />
                     ))}
                 </div>
@@ -569,7 +689,7 @@ export default function Packages() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className={`grid grid-cols-1 sm:grid-cols-${noOfCols} gap-4`}>
                                 <div>
                                     <label className="block text-xs font-semibold uppercase text-gray-600 mb-1">
                                         Category
@@ -677,8 +797,9 @@ export default function Packages() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
-        </div>
+                </div >
+            )
+            }
+        </div >
     );
 }

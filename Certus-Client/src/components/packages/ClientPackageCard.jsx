@@ -45,8 +45,16 @@ export default function ClientPackageCard({ package: pkg, categoryName }) {
     }
   };
 
-  const zoomIn = () => setZoomLevel((prev) => Math.min(prev + 0.5, 3));
-  const zoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.5, 0.5));
+  const ZOOM_LEVELS = [1, 1.1, 1.25, 1.5];
+  const zoomIn = () => setZoomLevel((prev) => {
+    const next = ZOOM_LEVELS.find((z) => z > prev + 0.001);
+    return next !== undefined ? next : prev;
+  });
+  const zoomOut = () => setZoomLevel((prev) => {
+    const reversed = [...ZOOM_LEVELS].reverse();
+    const next = reversed.find((z) => z < prev - 0.001);
+    return next !== undefined ? next : prev;
+  });
   const resetZoom = () => setZoomLevel(1);
 
   // Fallback placeholder when flyer is missing
