@@ -48,4 +48,5 @@ jobs:
           git pull origin deploy-to-ec2
           docker compose pull
           docker compose up -d --remove-orphans
+          docker compose restart nginx
           docker image prune -af

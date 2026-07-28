@@ -246,6 +246,8 @@ public class ReportIngestionService {
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         Report savedReport = saveReport(pdfFile, diagnosticReport, patient);
+        // Refresh the cached health history
+        healthHistoryService.rebuildHealthHistory(patient);
         System.out.println("Real Data Ingestion Successful: " + pdfFile.getName() + " -> " + patient.getName());
         emailService.sendReportUploadedEmail(patient, savedReport, pdfFile, diagnosticReport);
         return savedReport.getReportId();
