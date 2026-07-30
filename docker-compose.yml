@@ -29,7 +29,9 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-certus}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
-      UPLOAD_DIRECTORY: /app/uploads/reports
+      REPORTS_UPLOAD_DIRECTORY: /app/uploads/reports
+      PACKAGES_UPLOAD_DIRECTORY: /app/uploads/packages
+      PACKAGE_CATEGORY_UPLOAD_DIRECTORY: /app/uploads/package-category
     container_name: certus-backend
     depends_on:
       postgres:
