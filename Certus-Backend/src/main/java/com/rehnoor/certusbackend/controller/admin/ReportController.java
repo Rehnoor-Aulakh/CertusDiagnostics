@@ -7,6 +7,7 @@ import com.rehnoor.certusbackend.model.Report;
 import com.rehnoor.certusbackend.repository.PatientRepository;
 import com.rehnoor.certusbackend.repository.ReportRepository;
 import com.rehnoor.certusbackend.service.ReportIngestionService;
+import com.rehnoor.certusbackend.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,9 @@ public class ReportController {
 
     @Autowired
     private ReportIngestionService reportIngestionService;
+
+    @Autowired
+    private ReportService reportService;
 
     @GetMapping("/view/{filename:.+}")
     public ResponseEntity<Resource> viewReport(@PathVariable String filename) throws MalformedURLException {
@@ -89,23 +93,31 @@ public class ReportController {
         return ResponseEntity.ok(reportIngestionService.getReport(id, detailed));
     }
 
+    // fetch the reports for the Tests page for admin, just the headers not the jsonb data
     @GetMapping
     public ResponseEntity<?> getAllReports() {
         List<Report> reports = reportRepository.findAll();
+        reports.sort(
+                Comparator.comparing(
+                        reportService::getEffectiveReportDate,
+                        Comparator.nullsLast(Comparator.reverseOrder())
+                )
+        );
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        
         List<Map<String, Object>> data = reports.stream().map(r -> {
+            ZonedDateTime effectiveDate = reportService.getEffectiveReportDate(r);
             Map<String, Object> map = new HashMap<>();
             map.put("report_id", r.getReportId());
             map.put("patient_name", r.getPatientId() != null ? r.getPatientId().getName() : "Unknown");
             map.put("patient_id", r.getPatientId() != null ? r.getPatientId().getPatientId() : null);
             map.put("test_name", r.getTestName());
-            
-            if (r.getReportDate() != null) {
-                map.put("test_date_time", r.getReportDate().format(formatter));
-            } else {
-                map.put("test_date_time", null);
-            }
+
+            map.put(
+                    "test_date_time",
+                    effectiveDate == null
+                            ? null
+                            : effectiveDate.format(formatter)
+            );
             
             map.put("status", r.getReportStatus() != null ? r.getReportStatus().name() : "PENDING");
             map.put("price", r.getPrice());
@@ -160,6 +172,16 @@ public class ReportController {
             Report r = opt.get();
             if (payload.containsKey("test_name")) r.setTestName((String) payload.get("test_name"));
             if (payload.containsKey("price")) r.setPrice(new BigDecimal(payload.get("price").toString()));
+            
+            if (payload.containsKey("test_date_time") && payload.get("test_date_time") != null) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                LocalDateTime ldt = LocalDateTime.parse(payload.get("test_date_time").toString(), formatter);
+                ZonedDateTime zdt = ldt.atZone(ZoneId.systemDefault());
+                r.setReportDate(zdt);
+                r.setSampleCollectedOn(zdt);
+                r.setSampleReceivedOn(zdt);
+                r.setReportReleasedOn(zdt);
+            }
             
             reportRepository.save(r);
             return ResponseEntity.ok(Map.of("success", true));

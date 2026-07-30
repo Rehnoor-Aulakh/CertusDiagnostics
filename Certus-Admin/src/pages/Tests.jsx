@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import NotificationModal from "../components/NotificationModal";
 import { API_ENDPOINTS } from "../utils/api";
+import DatePicker from "react-datepicker";
+import { format } from "date-fns";
 
 export default function Tests() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editDateDisplay, setEditDateDisplay] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState(null);
@@ -49,10 +52,10 @@ export default function Tests() {
           category: "General", // Default category since not in reports table
           orderDate: report.test_date_time
             ? report.test_date_time.split(" ")[0]
-            : new Date().toISOString().split("T")[0],
+            : null,
           sampleDate: report.test_date_time
             ? report.test_date_time.split(" ")[0]
-            : new Date().toISOString().split("T")[0],
+            : null,
           status: report.status,
           priority: "Normal", // Default as it's not in database
           technician: "Lab Tech", // Default as it's not in database
@@ -328,6 +331,7 @@ export default function Tests() {
           report_id: editingTest.id,
           test_name: editingTest.testType,
           price: parseFloat(editingTest.cost),
+          test_date_time: editingTest.orderDate ? editingTest.orderDate + " 00:00:00" : null,
         }),
       });
 
@@ -616,7 +620,7 @@ export default function Tests() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm text-gray-500">
-                        Ordered: {test.orderDate}
+                        Ordered: {test.orderDate ? test.orderDate.split("-").reverse().join("-") : "Date Not Available"}
                       </div>
                     </div>
                   </td>
@@ -648,6 +652,7 @@ export default function Tests() {
                         onClick={() => {
                           setEditingTest(test);
                           setShowEditModal(true);
+                          setEditDateDisplay(test.orderDate);
                         }}
                       >
                         Edit
@@ -756,11 +761,10 @@ export default function Tests() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`flex-1 px-4 py-2 rounded-lg text-white font-medium transition-all duration-200 ${
-                    isSubmitting
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                  className={`flex-1 px-4 py-2 rounded-lg text-white font-medium transition-all duration-200 ${isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                    }`}
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
@@ -876,16 +880,40 @@ export default function Tests() {
                   placeholder="Enter price"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Test Date
+                </label>
+                <DatePicker
+                  selected={editDateDisplay ? new Date(editDateDisplay.replace(/-/g, '\/')) : null}
+
+                  onChange={(date) => {
+                    if (date) {
+                      const formatted = format(date, "yyyy-MM-dd");
+                      setEditDateDisplay(formatted);
+                      setEditingTest({ ...editingTest, orderDate: formatted });
+                    } else {
+                      setEditDateDisplay("");
+                      setEditingTest({ ...editingTest, orderDate: "" });
+                    }
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="DD/MM/YYYY"
+                  showYearDropdown
+                  showMonthDropdown
+                  dropdownMode="select"
+                  className="w-full text-gray-700 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={handleDeleteTest}
                   disabled={isSubmitting}
-                  className={`px-6 py-2 rounded-lg text-white font-medium transition-all duration-200 ${
-                    isSubmitting
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-red-600 hover:bg-red-700"
-                  }`}
+                  className={`px-6 py-2 rounded-lg text-white font-medium transition-all duration-200 ${isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-red-600 hover:bg-red-700"
+                    }`}
                 >
                   {isSubmitting ? "Processing..." : "Delete Test"}
                 </button>
@@ -903,11 +931,10 @@ export default function Tests() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`px-6 py-2 rounded-lg text-white font-medium transition-all duration-200 ${
-                    isSubmitting
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                  className={`px-6 py-2 rounded-lg text-white font-medium transition-all duration-200 ${isSubmitting
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                    }`}
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
