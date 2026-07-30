@@ -92,6 +92,7 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User record discrepancy encountered.");
             }
             Patient patient = patientOpt.get();
+            patient.setEmailVerified(true);
             Map<String, Object> userPayload = new HashMap<>();
             userPayload.put("patient_id", patient.getPatientId());
             userPayload.put("name", patient.getName());
@@ -99,6 +100,7 @@ public class AuthController {
             userPayload.put("phone", patient.getPhone());
             userPayload.put("role", "ROLE_PATIENT");
             userPayload.put("token", jwt);
+            patientRepository.save(patient);
 
             return ResponseEntity.ok(new ReactAuthResponse(true, "Authentication Successful", false, userPayload));
 
@@ -212,10 +214,22 @@ public class AuthController {
                     patient = patientRepository.save(patient);
                 } else {
                     patient = patientOpt.get();
+                    boolean needsUpdate = false;
+                    
                     // Update Google ID if it was missing (e.g., added by receptionist)
                     if (patient.getGoogleId() == null) {
                         patient.setGoogleId(data.getGoogle_id());
                         patient.setProfilePicture(data.getPicture());
+                        needsUpdate = true;
+                    }
+                    
+                    // Update emailVerified status if Google says it's verified
+                    if (!Boolean.TRUE.equals(patient.getEmailVerified()) && data.isEmail_verified()) {
+                        patient.setEmailVerified(true);
+                        needsUpdate = true;
+                    }
+                    
+                    if (needsUpdate) {
                         patient = patientRepository.save(patient);
                     }
                 }

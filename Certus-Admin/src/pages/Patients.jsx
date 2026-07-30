@@ -106,7 +106,7 @@ export default function Patients() {
           if (!patientName && patient.email) {
             patientName = patient.email.split("@")[0];
           }
-
+          //TODO: New status logic, if someone logs into google, then mark them as active
           return {
             id: patient.patient_id,
             name: patientName || "Unknown",
@@ -119,7 +119,7 @@ export default function Patients() {
                 ? patient.created_at.split(" ")[0]
                 : new Date().toISOString().split("T")[0]
             ),
-            status: "Active", // Default status
+            status: patient.emailVerified ? 'Active' : 'Inactive', // Default status
           };
         });
 
@@ -146,6 +146,7 @@ export default function Patients() {
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [editPatient, setEditPatient] = useState({
     name: "",
@@ -154,7 +155,15 @@ export default function Patients() {
     dob: "",
     gender: "",
   });
+  const [newPatient, setNewPatient] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    dob: "",
+    gender: "",
+  });
   const [editDobDisplay, setEditDobDisplay] = useState("");
+  const [addDobDisplay, setAddDobDisplay] = useState("");
   const [showAddTestModal, setShowAddTestModal] = useState(false);
   // so it just needs to hit the /admin/reports/{patientId} POST endpoint to upload the file, the backend will handle the rest.
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -187,6 +196,46 @@ export default function Patients() {
     });
     setEditDobDisplay(patient.dob ? patient.dob : "");
     setShowEditModal(true);
+  };
+
+  const handleAddPatient = async (e) => {
+    e.preventDefault();
+    try {
+      const rawAdminData = localStorage.getItem("adminUser");
+      const token = rawAdminData ? JSON.parse(rawAdminData).token : null;
+      const response = await fetch(API_ENDPOINTS.patients, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newPatient),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setShowAddModal(false);
+        setNewPatient({
+          name: "",
+          email: "",
+          phone: "",
+          dob: "",
+          gender: "",
+        });
+        setAddDobDisplay("");
+        fetchPatients();
+        setNotification({
+          type: "success",
+          title: "Patient Added",
+          message: "The patient has been added successfully.",
+        });
+      } else {
+        alert("Failed to add patient: " + result.message);
+      }
+    } catch (error) {
+      console.error("Error adding patient:", error);
+      alert("Failed to add patient. Please try again.");
+    }
   };
 
   // Handle update patient
@@ -388,6 +437,15 @@ export default function Patients() {
             Manage patient records and information
           </p>
         </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Patient
+        </button>
       </div>
 
       {/* Search */}
@@ -482,7 +540,7 @@ export default function Patients() {
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${patient.status === "Active"
                         ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
+                        : "bg-red-100 text-red-800"
                         }`}
                     >
                       {patient.status}
@@ -526,6 +584,114 @@ export default function Patients() {
           </table>
         </div>
       </div>
+
+      {/* Add Patient Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Add Patient</h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setNewPatient({ name: "", email: "", phone: "", dob: "", gender: "" });
+                  setAddDobDisplay("");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleAddPatient} className="space-y-4 text-gray-600">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={newPatient.name}
+                  onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={newPatient.email}
+                  onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={newPatient.phone}
+                  onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                <DatePicker
+                  selected={addDobDisplay ? new Date(addDobDisplay) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      const formatted = format(date, "yyyy-MM-dd");
+                      setAddDobDisplay(formatted);
+                      setNewPatient({ ...newPatient, dob: formatted });
+                    } else {
+                      setAddDobDisplay("");
+                      setNewPatient({ ...newPatient, dob: "" });
+                    }
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="DD/MM/YYYY"
+                  showYearDropdown
+                  showMonthDropdown
+                  dropdownMode="select"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select
+                  value={newPatient.gender}
+                  onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setNewPatient({ name: "", email: "", phone: "", dob: "", gender: "" });
+                    setAddDobDisplay("");
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add Patient
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* View Patient Modal */}
       {showViewModal && selectedPatient && (

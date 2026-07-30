@@ -36,6 +36,7 @@ public class PatientController {
             map.put("phone", p.getPhone());
             map.put("dob", p.getDob() != null ? p.getDob().toString() : "");
             map.put("gender", p.getGender() != null ? p.getGender().name() : "");
+            map.put("emailVerified", p.getEmailVerified());
             map.put("created_at", p.getCreatedAt() != null ? p.getCreatedAt().toString() : "");
             return map;
         }).collect(Collectors.toList());
@@ -44,6 +45,51 @@ public class PatientController {
         response.put("success", true);
         response.put("data", data);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createPatient(@RequestBody Map<String, Object> payload) {
+        try {
+            if (!payload.containsKey("name") || payload.get("name") == null || payload.get("name").toString().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Name is required"));
+            }
+            if (!payload.containsKey("email") || payload.get("email") == null || payload.get("email").toString().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Email is required"));
+            }
+
+            String email = payload.get("email").toString().trim();
+            if (patientRepository.existsByEmail(email)) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "A patient with this email already exists"));
+            }
+
+            Patient p = new Patient();
+            p.setName(payload.get("name").toString().trim());
+            p.setEmail(email);
+
+            if (payload.containsKey("phone") && payload.get("phone") != null) {
+                p.setPhone(payload.get("phone").toString().trim());
+            }
+
+            if (payload.containsKey("dob") && payload.get("dob") != null) {
+                String dobStr = payload.get("dob").toString();
+                if (!dobStr.isEmpty()) {
+                    p.setDob(LocalDate.parse(dobStr));
+                }
+            }
+
+            if (payload.containsKey("gender") && payload.get("gender") != null) {
+                String genderStr = payload.get("gender").toString();
+                if (!genderStr.isEmpty()) {
+                    p.setGender(Patient.Gender.valueOf(genderStr));
+                }
+            }
+            p.setEmailVerified(false);
+
+            patientRepository.save(p);
+            return ResponseEntity.ok(Map.of("success", true, "patient_id", p.getPatientId()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     @PatchMapping
