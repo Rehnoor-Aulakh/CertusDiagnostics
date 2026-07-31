@@ -56,19 +56,7 @@ export default function Patients() {
 
   // Fetch patients from database
   useEffect(() => {
-    const saved = sessionStorage.getItem("adminPatientsData");
-    if (!saved) {
-      fetchPatients();
-    } else {
-      const savedScroll = sessionStorage.getItem("patientsScrollY");
-      if (savedScroll) {
-        setTimeout(() => {
-          const container = document.getElementById("main-scroll-container");
-          if (container) container.scrollTo(0, parseInt(savedScroll, 10));
-          sessionStorage.removeItem("patientsScrollY");
-        }, 100);
-      }
-    }
+    fetchPatients();
   }, []);
 
   const fetchPatients = async () => {
@@ -114,14 +102,13 @@ export default function Patients() {
             phone: patient.phone || "",
             dob: patient.dob || "",
             gender: patient.gender || "",
-            lastVisit: formatDate(
-              patient.created_at
-                ? patient.created_at.split(" ")[0]
-                : new Date().toISOString().split("T")[0]
-            ),
+            address: patient.address || "",
+            description: patient.description || "",
+            lastVisit: patient.lastVisit ? formatDate(patient.lastVisit.split("T")[0]) : "",
             status: patient.emailVerified ? 'Active' : 'Inactive', // Default status
           };
         });
+
 
         setPatients(transformedPatients);
         sessionStorage.setItem("adminPatientsData", JSON.stringify(transformedPatients));
@@ -154,6 +141,8 @@ export default function Patients() {
     phone: "",
     dob: "",
     gender: "",
+    address: "",
+    description: "",
   });
   const [newPatient, setNewPatient] = useState({
     name: "",
@@ -161,8 +150,11 @@ export default function Patients() {
     phone: "",
     dob: "",
     gender: "",
+    address: "",
+    description: "",
   });
   const [editDobDisplay, setEditDobDisplay] = useState("");
+  const [editLastVisitDisplay, setEditLastVisitDisplay] = useState("");
   const [addDobDisplay, setAddDobDisplay] = useState("");
   const [showAddTestModal, setShowAddTestModal] = useState(false);
   // so it just needs to hit the /admin/reports/{patientId} POST endpoint to upload the file, the backend will handle the rest.
@@ -180,9 +172,65 @@ export default function Patients() {
   );
 
   // Handle view patient
+  const [patientReports, setPatientReports] = useState([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+
+  const fetchPatientReports = async (patientId) => {
+    try {
+      setLoadingReports(true);
+      const rawAdminData = localStorage.getItem("adminUser");
+      const token = rawAdminData ? JSON.parse(rawAdminData).token : null;
+      
+      const response = await fetch(API_ENDPOINTS.reports, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      const result = await response.json();
+      if (result.success) {
+        const filtered = result.data.filter(r => r.patient_id === patientId);
+        setPatientReports(filtered);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const handleViewReport = async (reportLocation) => {
+    if (reportLocation) {
+      try {
+        const reportUrl = API_ENDPOINTS.getReportUrl(reportLocation);
+        const rawAdminData = localStorage.getItem("adminUser");
+        const token = rawAdminData ? JSON.parse(rawAdminData).token : null;
+
+        const response = await fetch(reportUrl, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch report");
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, "_blank");
+      } catch (error) {
+        console.error("Error viewing report:", error);
+        alert("Failed to open the report. You might not have permission or the file is missing.");
+      }
+    }
+  };
+
   const handleViewPatient = (patient) => {
     setSelectedPatient(patient);
     setShowViewModal(true);
+    fetchPatientReports(patient.id);
   };
 
   const handleEditPatient = (patient) => {
@@ -193,8 +241,12 @@ export default function Patients() {
       phone: patient.phone,
       dob: patient.dob,
       gender: patient.gender,
+      address: patient.address || "",
+      description: patient.description || "",
+      lastVisit: patient.lastVisit,
     });
     setEditDobDisplay(patient.dob ? patient.dob : "");
+    setEditLastVisitDisplay(patient.lastVisit ? patient.lastVisit : "");
     setShowEditModal(true);
   };
 
@@ -221,6 +273,8 @@ export default function Patients() {
           phone: "",
           dob: "",
           gender: "",
+          address: "",
+          description: "",
         });
         setAddDobDisplay("");
         fetchPatients();
@@ -258,6 +312,9 @@ export default function Patients() {
           phone: editPatient.phone,
           dob: editPatient.dob,
           gender: editPatient.gender,
+          lastVisit: editPatient.lastVisit,
+          address: editPatient.address,
+          description: editPatient.description,
         }),
       });
 
@@ -268,6 +325,7 @@ export default function Patients() {
         setShowEditModal(false);
         setSelectedPatient(null);
         setEditDobDisplay("");
+        setEditLastVisitDisplay("");
         // Refresh the patients list
         fetchPatients();
       } else {
@@ -588,13 +646,13 @@ export default function Patients() {
       {/* Add Patient Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-900">Add Patient</h2>
               <button
                 onClick={() => {
                   setShowAddModal(false);
-                  setNewPatient({ name: "", email: "", phone: "", dob: "", gender: "" });
+                  setNewPatient({ name: "", email: "", phone: "", dob: "", gender: "", address: "", description: "" });
                   setAddDobDisplay("");
                 }}
                 className="text-gray-400 hover:text-gray-600"
@@ -669,12 +727,30 @@ export default function Patients() {
                   <option value="Other">Other</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <textarea
+                  value={newPatient.address}
+                  onChange={(e) => setNewPatient({ ...newPatient, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  rows="2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={newPatient.description}
+                  onChange={(e) => setNewPatient({ ...newPatient, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  rows="3"
+                />
+              </div>
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => {
                     setShowAddModal(false);
-                    setNewPatient({ name: "", email: "", phone: "", dob: "", gender: "" });
+                    setNewPatient({ name: "", email: "", phone: "", dob: "", gender: "", address: "", description: "" });
                     setAddDobDisplay("");
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
@@ -782,6 +858,22 @@ export default function Patients() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Address
+                </label>
+                <div className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  {selectedPatient.address || "Not provided"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <div className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg whitespace-pre-wrap">
+                  {selectedPatient.description || "Not provided"}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Status
                 </label>
                 <div className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
@@ -795,7 +887,42 @@ export default function Patients() {
                   </span>
                 </div>
               </div>
-              <div className="pt-4">
+              
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Reports
+                </label>
+                {loadingReports ? (
+                  <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg flex justify-center">
+                     <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                  </div>
+                ) : patientReports.length > 0 ? (
+                  <ul className="space-y-3">
+                    {patientReports.map(report => (
+                      <li key={report.report_id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">{report.test_name}</p>
+                          <p className="text-xs text-gray-500 mt-1">{report.test_date_time ? report.test_date_time.split(" ")[0].split("-").reverse().join("-") : "Date unavailable"}</p>
+                        </div>
+                        {report.report_location && (
+                          <button
+                            onClick={() => handleViewReport(report.report_location)}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
+                          >
+                            Download
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg text-center italic border border-gray-100">
+                    No reports found for this patient.
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t">
                 <button
                   onClick={() => {
                     setShowViewModal(false);
@@ -814,7 +941,7 @@ export default function Patients() {
       {/* Edit Patient Modal */}
       {showEditModal && selectedPatient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-900">Edit Patient</h2>
               <button
@@ -822,6 +949,7 @@ export default function Patients() {
                   setShowEditModal(false);
                   setSelectedPatient(null);
                   setEditDobDisplay("");
+                  setEditLastVisitDisplay("");
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -886,7 +1014,6 @@ export default function Patients() {
                 </label>
                 <input
                   type="tel"
-                  required
                   value={editPatient.phone}
                   onChange={(e) =>
                     setEditPatient({ ...editPatient, phone: e.target.value })
@@ -920,6 +1047,30 @@ export default function Patients() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Visit
+                </label>
+                <DatePicker
+                  selected={editLastVisitDisplay ? new Date(editLastVisitDisplay) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      const formatted = format(date, "yyyy-MM-dd");
+                      setEditLastVisitDisplay(formatted);
+                      setEditPatient({ ...editPatient, lastVisit: formatted });
+                    } else {
+                      setEditLastVisitDisplay("");
+                      setEditPatient({ ...editPatient, lastVisit: "" });
+                    }
+                  }}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="DD/MM/YYYY"
+                  showYearDropdown
+                  showMonthDropdown
+                  dropdownMode="select"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Gender
                 </label>
                 <select
@@ -934,6 +1085,24 @@ export default function Patients() {
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <textarea
+                  value={editPatient.address}
+                  onChange={(e) => setEditPatient({ ...editPatient, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  rows="2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={editPatient.description}
+                  onChange={(e) => setEditPatient({ ...editPatient, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  rows="3"
+                />
               </div>
               <div className="flex gap-3 pt-4">
                 <button

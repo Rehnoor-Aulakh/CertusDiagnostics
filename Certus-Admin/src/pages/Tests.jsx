@@ -203,13 +203,38 @@ export default function Tests() {
     phone: "",
     file: null,
   });
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
   const filteredTests = tests.filter((test) => {
     const matchesSearch =
       test.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       test.id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
       test.testType.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "" || (test.status && test.status.toUpperCase() === statusFilter.toUpperCase());
-    return matchesSearch && matchesStatus;
+    
+    let matchesDate = true;
+    if (startDate || endDate) {
+      if (test.orderDate) {
+        const testDate = new Date(test.orderDate);
+        testDate.setHours(0,0,0,0);
+        
+        if (startDate) {
+          const s = new Date(startDate);
+          s.setHours(0,0,0,0);
+          if (testDate < s) matchesDate = false;
+        }
+        if (endDate) {
+          const e = new Date(endDate);
+          e.setHours(23,59,59,999);
+          if (testDate > e) matchesDate = false;
+        }
+      } else {
+         matchesDate = false;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const handleAddTest = async (e) => {
@@ -517,7 +542,7 @@ export default function Tests() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -534,7 +559,7 @@ export default function Tests() {
             </svg>
             <input
               type="text"
-              placeholder="Search tests by patient, ID, or test type..."
+              placeholder="Search tests..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="text-gray-600 w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -556,6 +581,33 @@ export default function Tests() {
                 Completed
               </option>
             </select>
+          </div>
+          <div>
+            <DatePicker
+              selected={startDate}
+              onChange={(date) => setStartDate(date)}
+              selectsStart
+              startDate={startDate}
+              endDate={endDate}
+              placeholderText="Start Date"
+              className="text-gray-600 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              dateFormat="dd/MM/yyyy"
+              isClearable
+            />
+          </div>
+          <div>
+            <DatePicker
+              selected={endDate}
+              onChange={(date) => setEndDate(date)}
+              selectsEnd
+              startDate={startDate}
+              endDate={endDate}
+              minDate={startDate}
+              placeholderText="End Date"
+              className="text-gray-600 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              dateFormat="dd/MM/yyyy"
+              isClearable
+            />
           </div>
         </div>
       </div>

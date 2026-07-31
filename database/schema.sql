@@ -201,7 +201,8 @@ CREATE TABLE public.patients (
     google_id character varying(255) DEFAULT NULL::character varying,
     profile_picture character varying(500) DEFAULT NULL::character varying,
     email_verified boolean DEFAULT false,
-    last_login timestamp with time zone
+    last_login timestamp with time zone,
+    last_visit date
 );
 
 

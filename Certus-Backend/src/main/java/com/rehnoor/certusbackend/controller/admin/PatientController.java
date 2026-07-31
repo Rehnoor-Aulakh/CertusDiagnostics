@@ -33,11 +33,15 @@ public class PatientController {
             map.put("patient_id", p.getPatientId());
             map.put("name", p.getName());
             map.put("email", p.getEmail());
+            map.put("address", p.getAddress());
+            map.put("description", p.getDescription());
             map.put("phone", p.getPhone());
             map.put("dob", p.getDob() != null ? p.getDob().toString() : "");
             map.put("gender", p.getGender() != null ? p.getGender().name() : "");
             map.put("emailVerified", p.getEmailVerified());
             map.put("created_at", p.getCreatedAt() != null ? p.getCreatedAt().toString() : "");
+            map.put("lastVisit", p.getLastVisit()!=null ? p.getLastVisit().toString() : "");
+
             return map;
         }).collect(Collectors.toList());
 
@@ -83,6 +87,18 @@ public class PatientController {
                     p.setGender(Patient.Gender.valueOf(genderStr));
                 }
             }
+            if(payload.containsKey("description") && payload.get("decription")!=null){
+                String description = payload.get("description").toString();
+                if(!description.isEmpty()) {
+                    p.setDescription(description);
+                }
+            }
+            if(payload.containsKey("address") && payload.get("address")!=null){
+                String address = payload.get("address").toString();
+                if(!address.isEmpty()) {
+                    p.setAddress(address);
+                }
+            }
             p.setEmailVerified(false);
 
             patientRepository.save(p);
@@ -103,11 +119,19 @@ public class PatientController {
             if (payload.containsKey("name")) p.setName((String) payload.get("name"));
             if (payload.containsKey("email")) p.setEmail((String) payload.get("email"));
             if (payload.containsKey("phone")) p.setPhone((String) payload.get("phone"));
-            
+            if (payload.containsKey("address")) p.setAddress((String) payload.get("address"));
+            if (payload.containsKey("description")) p.setDescription((String) payload.get("description"));
+
             if (payload.containsKey("dob") && payload.get("dob") != null) {
                 String dobStr = payload.get("dob").toString();
                 if (!dobStr.isEmpty()) {
                     p.setDob(LocalDate.parse(dobStr));
+                }
+            }
+            if (payload.containsKey("lastVisit") && payload.get("lastVisit") != null) {
+                String lastVisit = payload.get("lastVisit").toString();
+                if (!lastVisit.isEmpty()) {
+                    p.setLastVisit(LocalDate.parse(lastVisit));
                 }
             }
             

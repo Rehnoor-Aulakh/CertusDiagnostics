@@ -36,6 +36,13 @@ public class Patient {
 
     private LocalDate dob;
 
+    @Column(name = "last_visit")
+    private LocalDate lastVisit;
+
+    private String address;
+
+    private String description;
+
     @Column(name = "gender", columnDefinition = "gender_enum")
     @ColumnTransformer(write="?::gender_enum")
     private String gender; // Mapped as standard string text at boundary level
