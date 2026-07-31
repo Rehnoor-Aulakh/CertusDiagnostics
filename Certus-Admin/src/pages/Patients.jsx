@@ -104,7 +104,7 @@ export default function Patients() {
             gender: patient.gender || "",
             address: patient.address || "",
             description: patient.description || "",
-            lastVisit: patient.lastVisit ? formatDate(patient.lastVisit.split("T")[0]) : "",
+            lastVisit: patient.lastVisit ? patient.lastVisit.split("T")[0] : "",
             status: patient.emailVerified ? 'Active' : 'Inactive', // Default status
           };
         });
@@ -592,7 +592,7 @@ export default function Patients() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {patient.lastVisit}
+                    {patient.lastVisit ? formatDate(patient.lastVisit) : ""}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -853,7 +853,7 @@ export default function Patients() {
                   Last Visit
                 </label>
                 <div className="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
-                  {selectedPatient.lastVisit}
+                  {selectedPatient.lastVisit ? formatDate(selectedPatient.lastVisit) : ""}
                 </div>
               </div>
               <div>
