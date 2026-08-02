@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rehnoor.certusbackend.dto.ReportResponse;
 import com.rehnoor.certusbackend.exception.DuplicateReportException;
+import com.rehnoor.certusbackend.exception.InvalidPdfException;
+import com.rehnoor.certusbackend.exception.PatientNotMatchingException;
 import com.rehnoor.certusbackend.exception.ResourceNotFoundException;
 import com.rehnoor.certusbackend.model.Patient;
 import com.rehnoor.certusbackend.model.Report;
@@ -29,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -69,8 +72,23 @@ public class ReportIngestionService {
 
     private final Faker faker = new Faker(Locale.forLanguageTag("en-IN"));
 
+    // direct pdf report for database seeder service
     private DiagnosticReport extractReport(File pdfFile) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdfFile)) {
+            TableExtractor tableExtractor = new TableExtractor();
+            RowClassifier rowClassifier = new RowClassifier();
+            MetadataExtractor metadataExtractor = new MetadataExtractor();
+            ReportAssembler reportAssembler = new ReportAssembler();
+
+            DiagnosticMetadata metadata = metadataExtractor.extract(document);
+            List<ExtractedTable> tables = tableExtractor.extractTables(document);
+
+            return reportAssembler.assemble(metadata, tables, rowClassifier);
+        }
+    }
+    // overloaded function for http requests
+    private DiagnosticReport extractReport(InputStream inputStream) throws IOException {
+        try (PDDocument document = Loader.loadPDF(inputStream.readAllBytes())) {
             TableExtractor tableExtractor = new TableExtractor();
             RowClassifier rowClassifier = new RowClassifier();
             MetadataExtractor metadataExtractor = new MetadataExtractor();
@@ -188,6 +206,33 @@ public class ReportIngestionService {
 
     }
 
+    private String normalizeName(String name) {
+        return name == null ? "" :
+                name.trim()
+                        .replaceAll("\\s+", " ")
+                        .toLowerCase();
+    }
+
+    private int reportMatchPatient(DiagnosticMetadata metadata, Patient patient) {
+        int score = 0;
+        // string matching algorithm to score the name of the patient
+
+        // age matching logic
+        int reportBirthYear = LocalDate.now().getYear() - metadata.getAge();
+        int patientBirthYear = patient.getDob().getYear();
+        if(Math.abs(reportBirthYear-patientBirthYear)<=1) {
+            score+=30;
+        }
+        // gender score
+        if (metadata.getGender() != null &&
+                patient.getGender() != null &&
+                metadata.getGender().name().equalsIgnoreCase(patient.getGender().name())) {
+
+            score += 20;
+        }
+        return score;
+    }
+
     // This is the method that our report upload controller will call
     @Transactional
     public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, String email, String phone)
@@ -198,6 +243,29 @@ public class ReportIngestionService {
         if (!"application/pdf".equals(multipartFile.getContentType())) {
             throw new com.rehnoor.certusbackend.exception.InvalidPdfException("Only PDF reports are supported.");
         }
+        // email and phone are provided
+        // first get the metadata from
+        DiagnosticReport diagnosticReport = extractReport(multipartFile.getInputStream());
+        DiagnosticMetadata metadata = diagnosticReport.getMetadata();
+        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank())
+            throw new com.rehnoor.certusbackend.exception.ReportParsingException(
+                    "Unable to extract patient information from PDF.");
+        // now that you have the data, get the patient details from email or phone whichever is available
+        Optional<Patient> patientOpt = patientRepository.findByEmailIgnoreCase(email);
+        if(patientOpt.isEmpty()) {
+            patientOpt = patientRepository.findByPhone(phone);
+        }
+        
+        Patient patient;
+        if(patientOpt.isEmpty()) {
+            patient = createPatient(metadata, email, phone);
+        } else{
+            patient = patientOpt.get();
+            // you have the patient-> now call the scoring function to check if the metadata matches with the patient in the database
+            if(reportMatchPatient(metadata, patient)<80) {
+                throw new PatientNotMatchingException("Report Metadata colliding with another patient");
+            }
+        }
         Files.createDirectories(Paths.get(uploadDirectory));
 
         String rawFilename = System.currentTimeMillis() + "_" + (multipartFile.getOriginalFilename() != null ? multipartFile.getOriginalFilename() : "report.pdf");
@@ -206,13 +274,7 @@ public class ReportIngestionService {
         Path destination = Paths.get(uploadDirectory, filename);
         Files.copy(multipartFile.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
         File pdfFile = destination.toFile();
-        DiagnosticReport diagnosticReport = extractReport(pdfFile);
-        DiagnosticMetadata metadata = diagnosticReport.getMetadata();
-        if (metadata.getPatientName() == null || metadata.getPatientName().isBlank())
-            throw new com.rehnoor.certusbackend.exception.ReportParsingException(
-                    "Unable to extract patient information from PDF.");
-        Patient patient = patientRepository.findByEmailIgnoreCase(email)
-                .orElseGet(() -> createPatient(metadata, email, phone));
+
         Report savedReport = saveReport(pdfFile, diagnosticReport, patient);
         // Refresh the cached health history
         healthHistoryService.rebuildHealthHistory(patient);
@@ -224,11 +286,22 @@ public class ReportIngestionService {
     @Transactional
     public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, Long patientId) throws IOException {
         if (multipartFile.isEmpty()) {
-            throw new com.rehnoor.certusbackend.exception.InvalidPdfException("Empty file.");
+            throw new InvalidPdfException("Empty file.");
         }
         if (!"application/pdf".equals(multipartFile.getContentType())) {
-            throw new com.rehnoor.certusbackend.exception.InvalidPdfException("Only PDF reports are supported.");
+            throw new InvalidPdfException("Only PDF reports are supported.");
         }
+        DiagnosticReport diagnosticReport = extractReport(multipartFile.getInputStream());
+
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+        DiagnosticMetadata diagnosticMetadata = diagnosticReport.getMetadata();
+
+
+        if(reportMatchPatient(diagnosticMetadata, patient)<80) {
+            throw new PatientNotMatchingException("The patient report does not match the selected patient, you may have selected the wrong patient or with incorrect credentials");
+        }
+
         Files.createDirectories(Paths.get(uploadDirectory));
 
         String rawFilename = System.currentTimeMillis() + "_" + (multipartFile.getOriginalFilename() != null ? multipartFile.getOriginalFilename() : "report.pdf");
@@ -240,10 +313,7 @@ public class ReportIngestionService {
 
         File pdfFile = destination.toFile();
 
-        DiagnosticReport diagnosticReport = extractReport(pdfFile);
 
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         Report savedReport = saveReport(pdfFile, diagnosticReport, patient);
         // Refresh the cached health history

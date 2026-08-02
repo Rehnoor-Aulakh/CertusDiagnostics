@@ -25,4 +25,6 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     long countPatientsByMonthAndYear(@Param("month") int month, @Param("year") int year);
 
     Optional<Patient> findByEmailIgnoreCase(String email);
+
+    Optional<Patient> findByPhone(String phone);
 }

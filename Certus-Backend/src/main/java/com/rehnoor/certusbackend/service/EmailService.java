@@ -13,8 +13,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class EmailService {
@@ -73,7 +73,7 @@ public class EmailService {
 
     @Async
     public void sendReportUploadedEmail(Patient patient, Report savedReport, File pdfFile,
-            DiagnosticReport diagnosticReport) {
+                                        DiagnosticReport diagnosticReport) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
