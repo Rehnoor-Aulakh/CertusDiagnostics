@@ -247,7 +247,7 @@ public class ReportIngestionService {
 
     // This is the method that our report upload controller will call
     @Transactional
-    public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, String email, String phone)
+    public Long processUploadedDiagnosticPDF(MultipartFile multipartFile, String email, String phone, boolean forceCreate)
             throws IOException {
         if (multipartFile.isEmpty()) {
             throw new com.rehnoor.certusbackend.exception.InvalidPdfException("Empty file.");
@@ -278,12 +278,54 @@ public class ReportIngestionService {
         
         Patient patient;
         if(patientOpt.isEmpty()) {
+            if (!forceCreate) {
+                String reportName = metadata.getPatientName() != null ? metadata.getPatientName().trim() : "";
+                java.util.List<Patient> similarPatients = patientRepository.findByNameContainingIgnoreCase(reportName);
+                
+                java.util.List<java.util.Map<String, Object>> suggestedList = similarPatients.stream()
+                        .filter(p -> reportMatchPatient(metadata, p) >= 80)
+                        .map(p -> {
+                            java.util.Map<String, Object> map = new java.util.HashMap<>();
+                            map.put("id", p.getPatientId());
+                            map.put("name", p.getName());
+                            map.put("email", p.getEmail());
+                            map.put("phone", p.getPhone());
+                            map.put("gender", p.getGender() != null ? p.getGender().name() : "Unknown");
+                            map.put("age", p.getDob() != null ? (LocalDate.now().getYear() - p.getDob().getYear()) : "Unknown");
+                            return map;
+                        })
+                        .collect(java.util.stream.Collectors.toList());
+
+                if (!suggestedList.isEmpty()) {
+                    throw new com.rehnoor.certusbackend.exception.PatientNotMatchingException(
+                            "The email or phone number belongs to a new patient, but we found similar patients in the database.", 
+                            suggestedList, true);
+                }
+            }
             patient = createPatient(metadata, email, phone);
         } else{
             patient = patientOpt.get();
             // you have the patient-> now call the scoring function to check if the metadata matches with the patient in the database
             if(reportMatchPatient(metadata, patient)<80) {
-                throw new PatientNotMatchingException("Report Metadata colliding with another patient");
+                String reportName = metadata.getPatientName() != null ? metadata.getPatientName().trim() : "";
+                java.util.List<Patient> similarPatients = patientRepository.findByNameContainingIgnoreCase(reportName);
+                
+                java.util.List<java.util.Map<String, Object>> suggestedList = similarPatients.stream()
+                        .filter(p -> reportMatchPatient(metadata, p) >= 80)
+                        .map(p -> {
+                            java.util.Map<String, Object> map = new java.util.HashMap<>();
+                            map.put("id", p.getPatientId());
+                            map.put("name", p.getName());
+                            map.put("email", p.getEmail());
+                            map.put("phone", p.getPhone());
+                            map.put("gender", p.getGender() != null ? p.getGender().name() : "Unknown");
+                            map.put("age", p.getDob() != null ? (LocalDate.now().getYear() - p.getDob().getYear()) : "Unknown");
+                            return map;
+                        })
+                        .collect(java.util.stream.Collectors.toList());
+
+                throw new com.rehnoor.certusbackend.exception.PatientNotMatchingException(
+                        "Report metadata does not match existing patient details.", suggestedList, false);
             }
         }
         Files.createDirectories(Paths.get(uploadDirectory));

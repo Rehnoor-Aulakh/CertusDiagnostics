@@ -67,23 +67,18 @@ public class ReportController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadReport(@RequestParam("file")MultipartFile file, @RequestParam("email") String email, @RequestParam(value = "phone", required = false) String phone){
-        try{
-            Long reportId = reportIngestionService.processUploadedDiagnosticPDF(file, email, phone);
-            return ResponseEntity.ok(Map.of("success", true, "report_id", reportId));
-        } catch(Exception e){
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
-        }
+    public ResponseEntity<?> uploadReport(@RequestParam("file")MultipartFile file, 
+                                          @RequestParam("email") String email, 
+                                          @RequestParam(value = "phone", required = false) String phone,
+                                          @RequestParam(value = "forceCreate", required = false, defaultValue = "false") boolean forceCreate) throws Exception {
+        Long reportId = reportIngestionService.processUploadedDiagnosticPDF(file, email, phone, forceCreate);
+        return ResponseEntity.ok(Map.of("success", true, "report_id", reportId));
     }
 
     @PostMapping(value = "/{patientId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadReportForPatient(@PathVariable Long patientId, @RequestParam("file")MultipartFile file){
-        try{
-            Long reportId = reportIngestionService.processUploadedDiagnosticPDF(file, patientId);
-            return ResponseEntity.ok(Map.of("success", true, "report_id", reportId));
-        } catch(Exception e){
-            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
-        }
+    public ResponseEntity<?> uploadReportForPatient(@PathVariable Long patientId, @RequestParam("file")MultipartFile file) throws Exception {
+        Long reportId = reportIngestionService.processUploadedDiagnosticPDF(file, patientId);
+        return ResponseEntity.ok(Map.of("success", true, "report_id", reportId));
     }
 
     @GetMapping("/{id}")
