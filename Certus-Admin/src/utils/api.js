@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
   // Report endpoints
   reports: `${API_BASE_URL}/admin/reports`,
   upload: `${API_BASE_URL}/admin/reports/upload`,
+  uploadPatientReport: (patientId) => `${API_BASE_URL}/admin/reports/${patientId}/upload`,
 
 
   packageCategories: `${API_BASE_URL}/admin/package-categories`,
