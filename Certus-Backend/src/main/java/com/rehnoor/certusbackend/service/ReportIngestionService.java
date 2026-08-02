@@ -216,13 +216,25 @@ public class ReportIngestionService {
     private int reportMatchPatient(DiagnosticMetadata metadata, Patient patient) {
         int score = 0;
         // string matching algorithm to score the name of the patient
+        String reportName = normalizeName(metadata.getPatientName());
+        String patientName = normalizeName(patient.getName());
+        
+        if (reportName.equals(patientName)) {
+            score += 50;
+        } else if (!reportName.isEmpty() && !patientName.isEmpty() && 
+                  (reportName.contains(patientName) || patientName.contains(reportName))) {
+            score += 30;
+        }
 
         // age matching logic
-        int reportBirthYear = LocalDate.now().getYear() - metadata.getAge();
-        int patientBirthYear = patient.getDob().getYear();
-        if(Math.abs(reportBirthYear-patientBirthYear)<=1) {
-            score+=30;
+        if (metadata.getAge() != null && patient.getDob() != null) {
+            int reportBirthYear = LocalDate.now().getYear() - metadata.getAge();
+            int patientBirthYear = patient.getDob().getYear();
+            if(Math.abs(reportBirthYear-patientBirthYear)<=1) {
+                score+=30;
+            }
         }
+        
         // gender score
         if (metadata.getGender() != null &&
                 patient.getGender() != null &&
@@ -251,9 +263,17 @@ public class ReportIngestionService {
             throw new com.rehnoor.certusbackend.exception.ReportParsingException(
                     "Unable to extract patient information from PDF.");
         // now that you have the data, get the patient details from email or phone whichever is available
-        Optional<Patient> patientOpt = patientRepository.findByEmailIgnoreCase(email);
-        if(patientOpt.isEmpty()) {
-            patientOpt = patientRepository.findByPhone(phone);
+        Optional<Patient> patientOpt = Optional.empty();
+        if (email != null && !email.isBlank()) {
+            patientOpt = patientRepository.findByEmailIgnoreCase(email);
+        }
+        if(patientOpt.isEmpty() && phone != null && !phone.trim().isEmpty()) {
+            try {
+                patientOpt = patientRepository.findByPhone(phone);
+            } catch (org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+                // In case multiple users somehow have the same phone, we just pick the first one
+                patientOpt = patientRepository.findAll().stream().filter(p -> phone.equals(p.getPhone())).findFirst();
+            }
         }
         
         Patient patient;
@@ -424,18 +444,32 @@ public class ReportIngestionService {
         report.setReportLocation(pdfFile.getName());
 
         ZoneId defaultZone = ZoneId.of("Asia/Kolkata");
+        LocalDate maxDate = patient.getLastVisit();
 
         if (metadata.getSampleCollectedOn() != null) {
+            LocalDate d = metadata.getSampleCollectedOn().toLocalDate();
+            if (maxDate == null || d.isAfter(maxDate)) maxDate = d;
             report.setSampleCollectedOn(metadata.getSampleCollectedOn().atZone(defaultZone));
         }
         if (metadata.getSampleReceivedOn() != null) {
+            LocalDate d = metadata.getSampleReceivedOn().toLocalDate();
+            if (maxDate == null || d.isAfter(maxDate)) maxDate = d;
             report.setSampleReceivedOn(metadata.getSampleReceivedOn().atZone(defaultZone));
         }
         if (metadata.getReportReleasedOn() != null) {
+            LocalDate d = metadata.getReportReleasedOn().toLocalDate();
+            if (maxDate == null || d.isAfter(maxDate)) maxDate = d;
             report.setReportReleasedOn(metadata.getReportReleasedOn().atZone(defaultZone));
         }
         if (metadata.getReportDate() != null) {
+            LocalDate d = metadata.getReportDate().toLocalDate();
+            if (maxDate == null || d.isAfter(maxDate)) maxDate = d;
             report.setReportDate(metadata.getReportDate().atZone(defaultZone));
+        }
+
+        if (maxDate != null && (patient.getLastVisit() == null || maxDate.isAfter(patient.getLastVisit()))) {
+            patient.setLastVisit(maxDate);
+            patientRepository.save(patient);
         }
 
         report.setReportStatus(Report.ReportStatus.COMPLETED);
