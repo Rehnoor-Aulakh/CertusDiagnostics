@@ -30,7 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
         "spring.ai.google.genai.embedding.project-id=173006060265",
         "spring.ai.google.genai.embedding.location=us-central1",
         "spring.ai.google.genai.embedding.api-key=${GOOGLE_GEMINI_API_KEY}",
-        "spring.ai.google.genai.embedding.options.output-dimensionality=768",
+        "spring.ai.google.genai.embedding.text.dimensions=768",
+        "spring.ai.vectorstore.pgvector.dimensions=768",
         "spring.sql.init.mode=always",
         "spring.config.import=optional:file:.env[.properties]"
 })
