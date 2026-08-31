@@ -24,23 +24,6 @@ public class RagConfig {
     }
 
     @Bean
-    public Client googleGenAiClient() {
-        return Client.builder()
-                .apiKey(apiKey != null && !apiKey.isEmpty() ? apiKey : "dummy-api-key")
-                .build();
-    }
-
-    @Bean
-    public EmbeddingModel embeddingModel(Client client) {
-        return new GoogleGenAiTextEmbeddingModel(
-                GoogleGenAiEmbeddingConnectionDetails.builder().genAiClient(client).build(),
-                GoogleGenAiTextEmbeddingOptions.builder()
-                        .model("text-embedding-004")
-                        .build()
-        );
-    }
-
-    @Bean
     public PgVectorStore vectorStore(JdbcTemplate jdbcTemplate, EmbeddingModel embeddingModel) {
         return PgVectorStore.builder(jdbcTemplate, embeddingModel)
                 .dimensions(768)
