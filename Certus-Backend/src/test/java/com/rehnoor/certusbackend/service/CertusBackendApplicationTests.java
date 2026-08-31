@@ -1,5 +1,6 @@
 package com.rehnoor.certusbackend.service;
 
+import com.rehnoor.certusbackend.service.rag.KnowledgeBaseReaderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 

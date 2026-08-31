@@ -1,4 +1,4 @@
-package com.rehnoor.certusbackend.service;
+package com.rehnoor.certusbackend.service.rag;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
@@ -79,7 +79,9 @@ public class KnowledgeBaseReaderService {
             String uriPath = resource.getURI().toString().replace("\\", "/");
             int kbIndex = uriPath.indexOf("knowledge_base/");
             if(kbIndex!=-1 ) {
-                String relativePath = uriPath.substring(kbIndex+"knowledge_base".length());
+                String relativePath = uriPath.substring(kbIndex+"knowledge_base/".length());
+                relativePath = relativePath.replaceAll("^/+", ""); // remove leading slashes
+
                 String[] parts = relativePath.split("/");
                 if(parts.length >=4 ){
                     metadata.put("category", parts[0]);
