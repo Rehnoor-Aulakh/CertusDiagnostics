@@ -40,5 +40,5 @@ services:
       - APP_CLIENT_URL=http://localhost:5173
 
   postgres:
-    ports:
+    ports: !override
       - "5433:5432"

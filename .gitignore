@@ -57,4 +57,5 @@ database/seed.sql
 uploads
 certusServer
 .agents/
-knowledge_base/
+knowledge_base
+certus_backup.sql
