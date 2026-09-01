@@ -17,7 +17,7 @@ export default function SuggestedQuestion({ question }) {
   const { setUserInput } = useChat();
   return (
     <Container
-      className="bg-blue-500 text-gray-200"
+      className="bg-blue-600 text-gray-200"
       onClick={() => setUserInput(question)}
     >
       {question}

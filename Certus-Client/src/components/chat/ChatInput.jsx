@@ -1,8 +1,8 @@
-import { Check, ChevronUp, SendHorizonal } from "lucide-react";
+import { Check, ChevronUp, CircleStop, SendHorizonal } from "lucide-react";
 import styled from "styled-components";
 import SuggestedQuestions from "./SuggestedQuestions";
 import { useChat } from "../../contexts/ChatContext";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { API_BASE_URL } from "../../config/api";
 import toast from "react-hot-toast";
@@ -63,6 +63,27 @@ const SendButton = styled.button`
 
   &:hover {
     background: #3777f5;
+  }
+`;
+const StopButton = styled.button`
+  width: 42px;
+  height: 42px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f50303;
+
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  &:hover {
+    background: #fd3b3b;
   }
 `;
 const ContextOptionsContainer = styled.div`
@@ -160,19 +181,38 @@ const MenuButton = styled.button`
   }
 `;
 export default function ChatInput() {
-  const { user, isLoggedIn, loading: authLoading } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const {
     userInput,
     setUserInput,
     conversationId,
     setConversationId,
     addMessage,
+    setLoading,
+    loading,
   } = useChat();
   const [selectedOption, setSelectedOption] = useState("LATEST_REPORT");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [customReports, setCustomReports] = useState(1);
   const [menuMode, setMenuMode] = useState("OPTIONS");
+  const contextMenuRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        contextMenuRef.current &&
+        !contextMenuRef.current.contains(e.target)
+      ) {
+        setIsMenuOpen(false);
+        setMenuMode(MENU_MODE.OPTIONS);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   const sendMessage = async (message, contextType, customReportCount) => {
+    if (message.trim() === "") return;
     if (!user?.token) {
       // alert the user to log in
       toast.error("Please log in to use Certus AI.");
@@ -189,6 +229,7 @@ export default function ChatInput() {
       content: message,
     });
     setUserInput("");
+    setLoading(true);
     const request = {
       conversationId: currentConversationId,
       message,
@@ -224,6 +265,8 @@ export default function ChatInput() {
       });
       console.error("Error sending message:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -244,7 +287,7 @@ export default function ChatInput() {
           placeholder="Ask anything about your reports"
           className="bg-transparent focus:outline-none w-full"
         />
-        <ContextOptionsContainer>
+        <ContextOptionsContainer ref={contextMenuRef}>
           {isMenuOpen && (
             <Menu>
               {menuMode === MENU_MODE.OPTIONS ? (
@@ -311,11 +354,19 @@ export default function ChatInput() {
             {options[selectedOption]} <ChevronUp size={20} color="#bcb7b7" />
           </MenuItem>
         </ContextOptionsContainer>
-        <SendButton
-          onClick={() => sendMessage(userInput, selectedOption, customReports)}
-        >
-          <SendHorizonal size={18} />
-        </SendButton>
+        {loading ? (
+          <StopButton>
+            <CircleStop size={18} />
+          </StopButton>
+        ) : (
+          <SendButton
+            onClick={() =>
+              sendMessage(userInput, selectedOption, customReports)
+            }
+          >
+            <SendHorizonal size={18} />
+          </SendButton>
+        )}
       </InputContainer>
     </Container>
   );
