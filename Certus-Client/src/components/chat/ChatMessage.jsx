@@ -1,9 +1,11 @@
-import React from 'react'
+import styled from "styled-components";
 
-export default function ChatMessage({message}) {
+const MessageContainer = styled.div``;
+const Bubble = styled.div``;
+export default function ChatMessage({ message }) {
   return (
-    <div>
-      
-    </div>
-  )
+    <MessageContainer role={message.role}>
+      <Bubble>{message.content}</Bubble>
+    </MessageContainer>
+  );
 }

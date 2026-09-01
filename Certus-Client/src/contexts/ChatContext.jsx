@@ -16,6 +16,7 @@ export const ChatProvider = ({ children }) => {
   const isOpen = width > 0;
   const [loading, setLoading] = useState(false);
   const [userInput, setUserInput] = useState("");
+  const [conversationId, setConversationId] = useState(null);
 
   const openChat = () => setWidth(MIN_WIDTH);
   const closeChat = () => setWidth(0);
@@ -26,9 +27,25 @@ export const ChatProvider = ({ children }) => {
       openChat();
     }
   };
-  const addMessage = (message) => {
-    setMessages((prevMessages) => [...prevMessages, message]);
+  const addMessage = ({
+    role,
+    content,
+    references = [],
+    suggestedQuestions = [],
+  }) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        id: crypto.randomUUID(),
+        role,
+        content,
+        references,
+        suggestedQuestions,
+        timestamp: new Date(),
+      },
+    ]);
   };
+
   const clearChat = () => setMessages([]);
 
   const value = {
@@ -51,6 +68,9 @@ export const ChatProvider = ({ children }) => {
 
     userInput,
     setUserInput,
+
+    conversationId,
+    setConversationId,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

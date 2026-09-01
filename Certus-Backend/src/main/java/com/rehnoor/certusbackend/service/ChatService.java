@@ -13,8 +13,11 @@ public class ChatService {
     private ChatClient chatClient;
 
 
-    public ChatResponseDTO chatResponse(ChatRequestDTO chatRequestDTO) {
+    public ChatResponseDTO chatResponse(ChatRequestDTO request) {
         
-        return null;
+        return ChatResponseDTO.builder()
+                .conversationId(request.getConversationId())
+                .answer(request.getMessage())
+                .build();
     }
 }

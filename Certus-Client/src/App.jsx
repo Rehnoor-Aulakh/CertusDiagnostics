@@ -4,6 +4,7 @@ import Header from "./components/client/Header";
 import Footer from "./components/common/Footer";
 import LoginModal from "./components/LoginModal";
 import { useAuth } from "./contexts/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 // Page components
 import Home from "./pages/Home";
@@ -66,7 +67,7 @@ export default function App() {
         >
           {/* Login Modal */}
           {showLoginModal && <LoginModal onClose={handleCloseModal} />}
-
+          <Toaster position="top-center" />
           <Header />
           <main className="flex-1" style={{ marginTop: "80px" }}>
             <Routes>

@@ -40,7 +40,7 @@ services:
       - ./uploads:/app/uploads
 
   postgres:
-    image: postgres:17
+    image: pgvector/pgvector:pg17
     container_name: certus-postgres
     restart: unless-stopped
     environment:

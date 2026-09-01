@@ -1,9 +1,20 @@
-import { Check, ChevronDown, ChevronUp, SendHorizonal } from "lucide-react";
+import { Check, ChevronUp, SendHorizonal } from "lucide-react";
 import styled from "styled-components";
 import SuggestedQuestions from "./SuggestedQuestions";
 import { useChat } from "../../contexts/ChatContext";
 import { useState } from "react";
-
+import { useAuth } from "../../contexts/AuthContext";
+import { API_BASE_URL } from "../../config/api";
+import toast from "react-hot-toast";
+const Container = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #24324a;
+`;
 const InputContainer = styled.div`
   display: flex;
   align-items: center;
@@ -149,19 +160,74 @@ const MenuButton = styled.button`
   }
 `;
 export default function ChatInput() {
-  const { userInput, setUserInput } = useChat();
+  const { user, isLoggedIn, loading: authLoading } = useAuth();
+  const {
+    userInput,
+    setUserInput,
+    conversationId,
+    setConversationId,
+    addMessage,
+  } = useChat();
   const [selectedOption, setSelectedOption] = useState("LATEST_REPORT");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [customReports, setCustomReports] = useState(1);
   const [menuMode, setMenuMode] = useState("OPTIONS");
-
-  const handleMessageSend = () => {
-    if (userInput.trim() !== "") {
+  const sendMessage = async (message, contextType, customReportCount) => {
+    if (!user?.token) {
+      // alert the user to log in
+      toast.error("Please log in to use Certus AI.");
       return;
+    }
+    let currentConversationId = conversationId;
+    if (!currentConversationId) {
+      currentConversationId = crypto.randomUUID();
+      setConversationId(currentConversationId);
+    }
+    // add message here
+    addMessage({
+      role: "user",
+      content: message,
+    });
+    setUserInput("");
+    const request = {
+      conversationId: currentConversationId,
+      message,
+      contextType,
+      customReportCount,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/chat/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      const data = await response.json();
+      addMessage({
+        role: "assistant",
+        content: data.answer,
+        references: data.references || [],
+        suggestedQuestions: data.suggestedQuestions || [],
+      });
+    } catch (error) {
+      addMessage({
+        role: "assistant",
+        content: "Sorry, there was an error processing your request.",
+      });
+      console.error("Error sending message:", error);
+      throw error;
     }
   };
   return (
-    <>
+    <Container>
       <SuggestedQuestions />
       <InputContainer className="mx-20 mb-10">
         <Input
@@ -169,6 +235,12 @@ export default function ChatInput() {
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage(userInput, selectedOption, customReports);
+            }
+          }}
           placeholder="Ask anything about your reports"
           className="bg-transparent focus:outline-none w-full"
         />
@@ -239,10 +311,12 @@ export default function ChatInput() {
             {options[selectedOption]} <ChevronUp size={20} color="#bcb7b7" />
           </MenuItem>
         </ContextOptionsContainer>
-        <SendButton onClick={handleMessageSend}>
+        <SendButton
+          onClick={() => sendMessage(userInput, selectedOption, customReports)}
+        >
           <SendHorizonal size={18} />
         </SendButton>
       </InputContainer>
-    </>
+    </Container>
   );
 }

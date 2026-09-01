@@ -20,12 +20,24 @@ const Panel = styled.div`
   overflow: hidden;
 `;
 
+const MessagesContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  /* Add padding bottom to account for the height of the fixed input at the bottom */
+  padding-bottom: 150px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: ${({ centerContent }) => (centerContent ? "center" : "flex-start")};
+`;
+
 export default function ChatPanel() {
   const { isOpen, width, messages } = useChat();
+  const isWelcome = messages.length === 0;
   return (
     <Panel isOpen={isOpen} width={width}>
-      {messages.length === 0 ? <ChatWelcome /> : <ChatHeader />}
-      {messages.length > 0 && <Conversation />}
+      <MessagesContainer centerContent={isWelcome}>
+        {isWelcome ? <ChatWelcome /> : <Conversation />}
+      </MessagesContainer>
       <ChatInput />
     </Panel>
   );

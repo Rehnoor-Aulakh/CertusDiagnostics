@@ -9,4 +9,5 @@ public class ChatRequestDTO {
     private String conversationId;
     private String message;
     private ContextType contextType;
+    private Integer customReportCount;
 }
