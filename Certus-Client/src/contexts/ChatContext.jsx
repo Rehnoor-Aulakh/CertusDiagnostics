@@ -3,15 +3,21 @@ import React, { createContext, useContext, useState } from "react";
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [width, setWidth] = useState(420);
+  const MIN_WIDTH = 300;
+  const [width, setWidth] = useState(0);
+  const isOpen = width > 0;
   const [loading, setLoading] = useState(false);
 
-  const toggleChat = () => setIsOpen((prev) => !prev);
-  const openChat = () => setIsOpen(true);
-  const closeChat = () => setIsOpen(false);
-
+  const openChat = () => setWidth(MIN_WIDTH);
+  const closeChat = () => setWidth(0);
+  const toggleChat = () => {
+    if (isOpen) {
+      closeChat();
+    } else {
+      openChat();
+    }
+  };
   const addMessage = (message) => {
     setMessages((prevMessages) => [...prevMessages, message]);
   };

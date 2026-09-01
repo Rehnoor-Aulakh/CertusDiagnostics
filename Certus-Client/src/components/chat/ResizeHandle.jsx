@@ -1,47 +1,71 @@
+import React, { useState } from "react";
 import { useChat } from "../../contexts/ChatContext";
 import styled from "styled-components";
+
 const Handle = styled.div`
-  position: absolute;
-  top: 0;
-  left: -3px;
-
+  position: fixed;
+  top: 80px;
+  right: ${({ width }) => width - 3}px;
   width: 6px;
-  height: 100%;
-
+  height: calc(100vh - 80px);
   cursor: col-resize;
-
-  z-index: 10000;
+  z-index: 10001;
+  background: ${({ $isResizing }) => ($isResizing ? "#3b82f6" : "transparent")};
   &:hover {
-    background: rgba(61, 132, 255, 0.25);
+    background: #3b82f6;
   }
 `;
-export default function ResizeHandle() {
-  const { setWidth, closeChat, openChat } = useChat();
-  const handleMouseDown = () => {
-    document.body.style.userSelect = "none";
-    openChat(); // Ensure the chat is open when resizing
-    // Handle mouse down event for resizing
-    const handleMouseMove = (e) => {
-      const newWidth = window.innerWidth - e.clientX;
-      const MIN_WIDTH = 320;
-      const CLOSE_THRESHOLD = 250; // Width below which the chat will close
-      const MAX_WIDTH = window.innerWidth * 0.7;
 
-      if (newWidth < CLOSE_THRESHOLD) {
-        closeChat();
-        return;
-      }
-      setWidth(Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH));
+export default function ResizeHandle() {
+  const { setWidth, width } = useChat();
+  const [isResizing, setIsResizing] = useState(false);
+
+  const handleMouseDown = (e) => {
+    const MIN_WIDTH = 300;
+    const MAX_WIDTH = window.innerWidth * 0.8;
+    const startX = e.clientX;
+    const initialWidth = width;
+
+    setIsResizing(true);
+    document.body.style.userSelect = "none";
+    let isDragging = false;
+    let finalWidth = initialWidth;
+
+    const handleMouseMove = (ev) => {
+      isDragging = true;
+      const newWidth = window.innerWidth - ev.clientX;
+      finalWidth = Math.max(0, Math.min(newWidth, MAX_WIDTH));
+      setWidth(finalWidth);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (ev) => {
+      setIsResizing(false);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
-
       document.body.style.userSelect = "";
+
+      if (!isDragging || Math.abs(ev.clientX - startX) < 5) {
+        // It was a click
+        if (initialWidth === 0) {
+          setWidth(MIN_WIDTH);
+        } else {
+          setWidth(initialWidth);
+        }
+      } else {
+        // It was a drag. Apply snapping logic on release.
+        if (finalWidth < MIN_WIDTH / 2) {
+          setWidth(0); // Snap close
+        } else if (finalWidth < MIN_WIDTH) {
+          setWidth(MIN_WIDTH); // Snap to minimum width
+        } else {
+          setWidth(finalWidth); // Keep the dragged width
+        }
+      }
     };
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
   };
-  return <Handle onMouseDown={handleMouseDown}></Handle>;
+
+  return <Handle width={width} $isResizing={isResizing} onMouseDown={handleMouseDown}></Handle>;
 }
