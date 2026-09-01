@@ -40,7 +40,7 @@ public class MedicalCorpusIngestionRunner {
         for(int i=0; i<chunks.size(); i+=batchSize) {
             int batchNum = (i/batchSize) + 1;
             
-            if (batchNum <= 35) {
+            if (batchNum <= 43) {
                 log.info("Skipping Batch {} as it was already ingested.", batchNum);
                 continue;
             }

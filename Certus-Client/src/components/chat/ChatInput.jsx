@@ -1,7 +1,8 @@
-import { SendHorizonal } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, SendHorizonal } from "lucide-react";
 import styled from "styled-components";
 import SuggestedQuestions from "./SuggestedQuestions";
 import { useChat } from "../../contexts/ChatContext";
+import { useState } from "react";
 
 const InputContainer = styled.div`
   display: flex;
@@ -53,8 +54,112 @@ const SendButton = styled.button`
     background: #3777f5;
   }
 `;
+const ContextOptionsContainer = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-right: 18px;
+`;
+const Menu = styled.div`
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  width: 220px;
+  background: #24324a;
+  border: 1px solid #3b4d6b;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+`;
+const MenuItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  &:hover {
+    background-color: #3b4d6b;
+  }
+`;
+const options = {
+  LATEST_REPORT: "Latest Report",
+  LAST_TWO_REPORTS: "Last 2 Reports",
+  LAST_THREE_MONTHS: "Last 3 Months",
+  LAST_SIX_MONTHS: "Last 6 Months",
+  LAST_ONE_YEAR: "Last 1 Year",
+  CUSTOM: "Custom",
+};
+const MENU_MODE = {
+  OPTIONS: "OPTIONS",
+  CUSTOM: "CUSTOM",
+};
+const CustomMenuContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+`;
+
+const CustomTitle = styled.div`
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+`;
+
+const ReportsInput = styled.input`
+  width: 100%;
+  padding: 10px 12px;
+
+  border: 1px solid #3b4d6b;
+  border-radius: 8px;
+
+  background: #1d2636;
+  color: white;
+
+  outline: none;
+
+  &:focus {
+    border-color: #4f8dfd;
+  }
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+`;
+
+const MenuButton = styled.button`
+  padding: 8px 14px;
+
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  background: ${({ primary }) => (primary ? "#4f8dfd" : "#374151")};
+
+  color: white;
+
+  &:hover {
+    background: ${({ primary }) => (primary ? "#3777f5" : "#4b5563")};
+  }
+`;
 export default function ChatInput() {
   const { userInput, setUserInput } = useChat();
+  const [selectedOption, setSelectedOption] = useState("LATEST_REPORT");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [customReports, setCustomReports] = useState(1);
+  const [menuMode, setMenuMode] = useState("OPTIONS");
+
+  const handleMessageSend = () => {
+    if (userInput.trim() !== "") {
+      return;
+    }
+  };
   return (
     <>
       <SuggestedQuestions />
@@ -67,7 +172,74 @@ export default function ChatInput() {
           placeholder="Ask anything about your reports"
           className="bg-transparent focus:outline-none w-full"
         />
-        <SendButton>
+        <ContextOptionsContainer>
+          {isMenuOpen && (
+            <Menu>
+              {menuMode === MENU_MODE.OPTIONS ? (
+                <>
+                  {Object.entries(options).map(([key, value]) => (
+                    <MenuItem
+                      key={key}
+                      onClick={() => {
+                        if (key === "CUSTOM") {
+                          setMenuMode(MENU_MODE.CUSTOM);
+                        } else {
+                          setSelectedOption(key);
+                          setIsMenuOpen(false);
+                        }
+                      }}
+                    >
+                      <span>{value}</span>
+
+                      {selectedOption === key && (
+                        <Check size={18} color="#bcb7b7" />
+                      )}
+                    </MenuItem>
+                  ))}
+                </>
+              ) : (
+                <CustomMenuContainer>
+                  <CustomTitle>Enter number of latest reports</CustomTitle>
+
+                  <ReportsInput
+                    type="number"
+                    min={1}
+                    value={customReports}
+                    onChange={(e) => setCustomReports(Number(e.target.value))}
+                  />
+
+                  <ButtonRow>
+                    <MenuButton
+                      onClick={() => {
+                        setMenuMode(MENU_MODE.OPTIONS);
+                      }}
+                    >
+                      Back
+                    </MenuButton>
+
+                    <MenuButton
+                      primary
+                      onClick={() => {
+                        setSelectedOption("CUSTOM");
+                        setIsMenuOpen(false);
+                        setMenuMode(MENU_MODE.OPTIONS);
+                      }}
+                    >
+                      Apply
+                    </MenuButton>
+                  </ButtonRow>
+                </CustomMenuContainer>
+              )}
+            </Menu>
+          )}
+          <MenuItem
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            style={{ gap: "12px" }}
+          >
+            {options[selectedOption]} <ChevronUp size={20} color="#bcb7b7" />
+          </MenuItem>
+        </ContextOptionsContainer>
+        <SendButton onClick={handleMessageSend}>
           <SendHorizonal size={18} />
         </SendButton>
       </InputContainer>

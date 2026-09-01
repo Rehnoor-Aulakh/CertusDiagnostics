@@ -25,7 +25,7 @@ export default function ChatPanel() {
   return (
     <Panel isOpen={isOpen} width={width}>
       {messages.length === 0 ? <ChatWelcome /> : <ChatHeader />}
-      <Conversation />
+      {messages.length > 0 && <Conversation />}
       <ChatInput />
     </Panel>
   );

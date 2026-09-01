@@ -60,7 +60,7 @@ export default function LoginModal({ onClose }) {
 
     try {
       const userInfo = JSON.parse(
-        atob(credentialResponse.credential.split(".")[1])
+        atob(credentialResponse.credential.split(".")[1]),
       );
 
       const googleUserData = {

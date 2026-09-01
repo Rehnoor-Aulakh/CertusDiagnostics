@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import SuggestedQuestion from "./SuggestedQuestion";
+import { useChat } from "../../contexts/ChatContext";
 
 const QuestionsContainer = styled.div`
   display: flex;
@@ -11,21 +12,14 @@ const QuestionsContainer = styled.div`
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 12px 16px;
+  padding: 16px 16px;
   align-items: center;
   font-size: 16px;
   font-weight: 500;
 `;
 
-const suggestedQuestions = [
-  "Compare my last two reports",
-  "What are the key findings in my latest report?",
-  "Summarize the trends in my reports over the last 6 months",
-  "What are the most common issues found in my reports?",
-  "Suggest diet plan based on my latest report",
-];
-
 export default function SuggestedQuestions() {
+  const { suggestedQuestions } = useChat();
   return (
     <>
       <QuestionsContainer>
