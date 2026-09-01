@@ -1,9 +1,10 @@
 import styled from "styled-components";
 import { useChat } from "../../contexts/ChatContext";
-import ChatHeader from "./ChatHeader";
+import ChatHeader from "./ChatWelcome";
 import ChatInput from "./ChatInput";
 import Conversation from "./Conversation";
 import ResizeHandle from "./ResizeHandle";
+import ChatWelcome from "./ChatWelcome";
 
 const Panel = styled.div`
   position: fixed;
@@ -20,10 +21,10 @@ const Panel = styled.div`
 `;
 
 export default function ChatPanel() {
-  const { isOpen, width } = useChat();
+  const { isOpen, width, messages } = useChat();
   return (
     <Panel isOpen={isOpen} width={width}>
-      <ChatHeader />
+      {messages.length === 0 ? <ChatWelcome /> : <ChatHeader />}
       <Conversation />
       <ChatInput />
     </Panel>

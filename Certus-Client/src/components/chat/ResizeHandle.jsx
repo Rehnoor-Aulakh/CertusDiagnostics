@@ -17,11 +17,10 @@ const Handle = styled.div`
 `;
 
 export default function ResizeHandle() {
-  const { setWidth, width } = useChat();
+  const { setWidth, width, MIN_WIDTH } = useChat();
   const [isResizing, setIsResizing] = useState(false);
 
   const handleMouseDown = (e) => {
-    const MIN_WIDTH = 300;
     const MAX_WIDTH = window.innerWidth * 0.8;
     const startX = e.clientX;
     const initialWidth = width;
@@ -67,5 +66,11 @@ export default function ResizeHandle() {
     window.addEventListener("mouseup", handleMouseUp);
   };
 
-  return <Handle width={width} $isResizing={isResizing} onMouseDown={handleMouseDown}></Handle>;
+  return (
+    <Handle
+      width={width}
+      $isResizing={isResizing}
+      onMouseDown={handleMouseDown}
+    ></Handle>
+  );
 }

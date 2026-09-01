@@ -4,10 +4,11 @@ const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
-  const MIN_WIDTH = 300;
+  const MIN_WIDTH = 600;
   const [width, setWidth] = useState(0);
   const isOpen = width > 0;
   const [loading, setLoading] = useState(false);
+  const [userInput, setUserInput] = useState("");
 
   const openChat = () => setWidth(MIN_WIDTH);
   const closeChat = () => setWidth(0);
@@ -24,6 +25,7 @@ export const ChatProvider = ({ children }) => {
   const clearChat = () => setMessages([]);
 
   const value = {
+    MIN_WIDTH,
     isOpen,
     openChat,
     closeChat,
@@ -38,6 +40,9 @@ export const ChatProvider = ({ children }) => {
 
     loading,
     setLoading,
+
+    userInput,
+    setUserInput,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
