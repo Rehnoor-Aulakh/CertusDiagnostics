@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import Logo from "../../components/Logo";
+import { Bot } from "lucide-react";
+import FloatingButton from "../../components/chat/FloatingButton";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,7 +31,7 @@ export default function Header() {
     console.log("Header - User profile picture URL:", user?.profile_picture);
     console.log(
       "Header - Optimized URL:",
-      getOptimizedProfilePicture(user?.profile_picture)
+      getOptimizedProfilePicture(user?.profile_picture),
     );
   }, [user?.profile_picture]);
 
@@ -40,7 +42,10 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-slate-800/30 backdrop-blur-lg sticky top-0 z-50 w-full overflow-x-hidden">
+      <header
+        className="bg-slate-800/30 backdrop-blur-lg sticky top-0 z-50 w-full overflow-x-hidden"
+        style={{ position: "fixed" }}
+      >
         <nav className="container mx-auto px-4 md:px-6 py-1 md:py-2 flex justify-between items-center max-w-full">
           <div className="flex items-center space-x-3 md:space-x-3">
             <button
@@ -110,7 +115,7 @@ export default function Header() {
                       className="w-8 h-8 rounded-full object-cover"
                       onError={() => {
                         console.warn(
-                          "Header profile picture failed to load, using fallback"
+                          "Header profile picture failed to load, using fallback",
                         );
                         setImageLoadError(true);
                       }}
@@ -123,7 +128,12 @@ export default function Header() {
                       </span>
                     </div>
                   )}
-                  <span className="text-gray-300 text-sm max-w-[100px] lg:max-w-[150px] truncate" title={user?.name}>{user?.name}</span>
+                  <span
+                    className="text-gray-300 text-sm max-w-[100px] lg:max-w-[150px] truncate"
+                    title={user?.name}
+                  >
+                    {user?.name}
+                  </span>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -140,6 +150,9 @@ export default function Header() {
                 Sign In
               </Link>
             )}
+            <div>
+              <FloatingButton />
+            </div>
           </div>
         </nav>
       </header>
@@ -154,16 +167,34 @@ export default function Header() {
 
       {/* Mobile Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-slate-900 shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 left-0 h-full w-64 bg-slate-900 shadow-2xl z-[70] transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
           <div className="logo-container flex items-center gap-1 md:gap-4">
-            <img src="/logo10.png" alt="Certus Diagnostics" className="h-16 w-auto" />
+            <img
+              src="/logo10.png"
+              alt="Certus Diagnostics"
+              className="h-16 w-auto"
+            />
           </div>
-          <button onClick={() => setIsMenuOpen(false)} className="text-gray-400 hover:text-white focus:outline-none">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="text-gray-400 hover:text-white focus:outline-none"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -209,7 +240,13 @@ export default function Header() {
         <div className="p-4 border-t border-slate-700/50">
           {isLoggedIn ? (
             <>
-              <div className="flex items-center space-x-3 py-3 px-2 rounded-lg bg-slate-800/50 cursor-pointer mb-3" onClick={() => { navigate("/dashboard"); setIsMenuOpen(false); }}>
+              <div
+                className="flex items-center space-x-3 py-3 px-2 rounded-lg bg-slate-800/50 cursor-pointer mb-3"
+                onClick={() => {
+                  navigate("/dashboard");
+                  setIsMenuOpen(false);
+                }}
+              >
                 {user?.profile_picture && !imageLoadError ? (
                   <img
                     src={getOptimizedProfilePicture(user.profile_picture)}
@@ -228,8 +265,12 @@ export default function Header() {
                   </div>
                 )}
                 <div className="flex flex-col truncate">
-                  <span className="text-white font-medium truncate">{user?.name}</span>
-                  <span className="text-slate-400 text-xs truncate">{user?.email || "User"}</span>
+                  <span className="text-white font-medium truncate">
+                    {user?.name}
+                  </span>
+                  <span className="text-slate-400 text-xs truncate">
+                    {user?.email || "User"}
+                  </span>
                 </div>
               </div>
               <button

@@ -9,8 +9,13 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
-      port: 5174, // Fixed port for admin panel
-      host: true,
+      host: "0.0.0.0", // Expose to network
+      port: 5174,
+      ...(env.CHOKIDAR_USEPOLLING === 'true' && {
+        watch: {
+          usePolling: true,
+        },
+      }),
       proxy: {
         '/api': {
           target: proxyTarget,

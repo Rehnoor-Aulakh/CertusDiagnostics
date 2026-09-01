@@ -39,6 +39,12 @@ public class MedicalCorpusIngestionRunner {
 
         for(int i=0; i<chunks.size(); i+=batchSize) {
             int batchNum = (i/batchSize) + 1;
+            
+            if (batchNum <= 35) {
+                log.info("Skipping Batch {} as it was already ingested.", batchNum);
+                continue;
+            }
+
             List<Document> batch = chunks.subList(i, Math.min(i+batchSize, chunks.size()));
 
             boolean success = false;
@@ -54,7 +60,7 @@ public class MedicalCorpusIngestionRunner {
 
                     // Safe rate-limiting delay to stay under ~5 RPM free tier calling
                     if(i + batchSize < chunks.size()) {
-                        TimeUnit.SECONDS.sleep(12);
+                        TimeUnit.SECONDS.sleep(30);
                     }
                 } catch(Exception e) {
                     retries++;

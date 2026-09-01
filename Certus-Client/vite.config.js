@@ -11,6 +11,11 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "0.0.0.0", // Expose to network
       port: 5173,
+      ...(env.CHOKIDAR_USEPOLLING === 'true' && {
+        watch: {
+          usePolling: true,
+        },
+      }),
       proxy: {
         '/api': {
           target: proxyTarget,
