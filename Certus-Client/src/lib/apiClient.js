@@ -30,3 +30,21 @@ export const fetchPackages = async () => {
     return data.success ? data.data : [];
   }
 };
+
+// Fetch Patient Reports
+export const fetchPatientReports = async (token) => {
+  const { data } = await apiClient.get("/patient/reports", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  // return the array of reports if successful
+  return data.success ? data.reports : [];
+};
+
+// Fetch Patient Health History
+export const fetchPatientHistory = async (token) => {
+  const { data } = await apiClient.get("/patient/history", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  return data;
+};

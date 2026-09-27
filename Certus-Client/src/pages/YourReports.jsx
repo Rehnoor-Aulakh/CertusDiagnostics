@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { API_BASE_URL } from "../config/api";
 import ReportDetails from "../components/ReportDetails";
+import { usePatientReports } from "../hooks/usePatient";
 
 export default function YourReports() {
   const { isLoggedIn, user, loading } = useAuth();
   const navigate = useNavigate();
-  const [reports, setReports] = useState([]);
-  const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState(null);
 
   // Redirect to sign-in if not authenticated
@@ -19,74 +18,17 @@ export default function YourReports() {
     }
   }, [isLoggedIn, loading, navigate]);
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/patient/history`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
+  const { data: rawReports = [], isLoading: isLoadingReports } =
+    usePatientReports(user?.token);
 
-        console.log("Status:", response.status);
-
-        const data = await response.json();
-
-        console.log("History Response:", data);
-      } catch (error) {
-        console.error("History fetch failed:", error);
-      }
-    };
-
-    if (user?.token) {
-      fetchHistory();
-    }
-  }, [user?.token]);
-
-  const fetchUserReports = useCallback(async () => {
-    setIsLoadingReports(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/patient/reports`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch reports");
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        // The backend now returns { success: true, reports: [...] }
-        const userReports = data.reports.map((report) => ({
-          id: report.id,
-          test_name: report.test_name,
-          date: report.date || new Date().toISOString().split("T")[0],
-          status: report.status === "COMPLETED" ? "Ready" : "Pending",
-        }));
-        setReports(userReports);
-      } else {
-        console.error("Failed to fetch reports:", data.message);
-        setReports([]);
-      }
-    } catch (error) {
-      console.error("Error fetching reports:", error);
-      setReports([]);
-    } finally {
-      setIsLoadingReports(false);
-    }
-  }, [user?.token]);
-
-  // Fetch user reports when user is logged in
-  useEffect(() => {
-    if (isLoggedIn && user) {
-      fetchUserReports();
-    }
-  }, [isLoggedIn, user, fetchUserReports]);
+  const reports = useMemo(() => {
+    return rawReports.map((report) => ({
+      id: report.id,
+      test_name: report.test_name,
+      date: report.date || new Date().toISOString().split("T")[0],
+      status: report.status === "COMPLETED" ? "Ready" : "Pending",
+    }));
+  }, [rawReports]);
 
   // Show loading while checking authentication
   if (loading) {
