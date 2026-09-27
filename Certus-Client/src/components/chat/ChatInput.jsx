@@ -3,9 +3,6 @@ import styled from "styled-components";
 import SuggestedQuestions from "./SuggestedQuestions";
 import { useChat } from "../../contexts/ChatContext";
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import { API_BASE_URL } from "../../config/api";
-import toast from "react-hot-toast";
 const Container = styled.div`
   position: absolute;
   bottom: 0;
@@ -196,20 +193,17 @@ const MenuButton = styled.button`
   }
 `;
 export default function ChatInput() {
-  const { user, isLoggedIn } = useAuth();
   const {
     userInput,
     setUserInput,
-    conversationId,
-    setConversationId,
-    addMessage,
-    setLoading,
     loading,
-    setSuggestedQuestions,
+    selectedOption,
+    setSelectedOption,
+    customReports,
+    setCustomReports,
+    sendMessage,
   } = useChat();
-  const [selectedOption, setSelectedOption] = useState("LATEST_REPORT");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [customReports, setCustomReports] = useState(1);
   const [menuMode, setMenuMode] = useState("OPTIONS");
   const contextMenuRef = useRef(null);
   const textareaRef = useRef(null);
@@ -241,69 +235,7 @@ export default function ChatInput() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  const sendMessage = async (message, contextType, customReportCount) => {
-    if (message.trim() === "") return;
-    if (!user?.token) {
-      // alert the user to log in
-      toast.error("Please log in to use Certus AI.");
-      return;
-    }
-    let currentConversationId = conversationId;
-    if (!currentConversationId) {
-      currentConversationId = crypto.randomUUID();
-      setConversationId(currentConversationId);
-    }
-    // add message here
-    addMessage({
-      role: "user",
-      content: message,
-    });
-    setUserInput("");
-    setLoading(true);
-    const request = {
-      conversationId: currentConversationId,
-      message,
-      contextType,
-      customReportCount,
-    };
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat/message`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify(request),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      const data = await response.json();
-      console.log(data);
-      addMessage({
-        role: "assistant",
-        content: data.answer,
-        references: data.references || [],
-        suggestedQuestions: data.suggestedQuestions || [],
-      });
-
-      if (data.suggestedQuestions && data.suggestedQuestions.length > 0) {
-        setSuggestedQuestions(data.suggestedQuestions);
-      }
-    } catch (error) {
-      addMessage({
-        role: "assistant",
-        content: "Sorry, there was an error processing your request.",
-      });
-      console.error("Error sending message:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <Container>
       <SuggestedQuestions />

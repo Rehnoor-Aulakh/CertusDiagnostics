@@ -14,11 +14,13 @@ const Container = styled.div`
 `;
 
 export default function SuggestedQuestion({ question }) {
-  const { setUserInput } = useChat();
+  const { sendMessage } = useChat();
   return (
     <Container
       className="bg-blue-600 text-gray-200"
-      onClick={() => setUserInput(question)}
+      onClick={() => {
+        sendMessage(question);
+      }}
     >
       {question}
     </Container>
