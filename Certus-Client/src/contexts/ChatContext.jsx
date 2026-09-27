@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState } from "react";
-import { useAuth } from "./AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { createContext, useContext, useState } from "react";
 import toast from "react-hot-toast";
 import { API_BASE_URL } from "../config/api";
+import { fetchPatientHistory } from "../lib/apiClient";
+import { useAuth } from "./AuthContext";
 
 const ChatContext = createContext();
 
@@ -23,12 +25,18 @@ export const ChatProvider = ({ children }) => {
   const [conversationId, setConversationId] = useState(null);
   const [selectedOption, setSelectedOption] = useState("LATEST_REPORT");
   const [customReports, setCustomReports] = useState(1);
+  // Tracks whether the current logged-in user has health history
+  const [hasHistory, setHasHistory] = useState(false);
 
   const sendMessage = async (message) => {
     if (message.trim() === "") return;
     if (!user?.token) {
-      // alert the user to log in
       toast.error("Please log in to use Certus AI.");
+      return;
+    }
+    // Block if we know they have no history
+    if (!hasHistory) {
+      toast.error("You need to get a blood test done to access Certus AI.");
       return;
     }
     let currentConversationId = conversationId;
@@ -88,13 +96,51 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const openChat = () => setWidth(MIN_WIDTH);
+  const queryClient = useQueryClient();
+
+  const handleOpenChat = async () => {
+    if (!user?.token) {
+      toast.error("Please log in to use Certus AI.");
+      return;
+    }
+
+    const toastId = toast.loading("Checking your health history...");
+    try {
+      // Use queryClient to get the data (it will instantly return if cached!)
+      const historyData = await queryClient.fetchQuery({
+        queryKey: ["patient-history", user.token],
+        queryFn: () => fetchPatientHistory(user.token),
+        staleTime: 5 * 60 * 1000,
+      });
+
+      toast.dismiss(toastId);
+
+      // The backend always returns a summary object even for empty patients,
+      // so we must check totalTests > 0, not just object existence.
+      const hasGraphs = historyData?.graphs && historyData.graphs.length > 0;
+      const hasSummary = (historyData?.summary?.totalTests ?? 0) > 0;
+
+      if (!hasGraphs && !hasSummary) {
+        setHasHistory(false);
+        toast.error("You need to get a blood test done to access Certus AI.");
+        return;
+      }
+
+      setHasHistory(true);
+      setWidth(MIN_WIDTH);
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("Failed to verify your records. Please try again.");
+    }
+  };
+
+  const openChat = () => handleOpenChat();
   const closeChat = () => setWidth(0);
   const toggleChat = () => {
     if (isOpen) {
       closeChat();
     } else {
-      openChat();
+      handleOpenChat();
     }
   };
   const addMessage = ({
