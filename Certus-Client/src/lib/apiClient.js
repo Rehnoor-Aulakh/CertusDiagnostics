@@ -48,3 +48,10 @@ export const fetchPatientHistory = async (token) => {
 
   return data;
 };
+
+// Fetch Patient Reviews
+export const fetchPatientReviews = async () => {
+  const { data } = await apiClient.get("/viewer/fetchReviews");
+  if (!data.success) throw new Error(data.message || "Failed to load reviews");
+  return data;
+};

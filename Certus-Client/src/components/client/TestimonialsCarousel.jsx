@@ -1,14 +1,9 @@
-import StarRating from "./../common/StarRating";
+import React from "react";
+import { usePatientReviews } from "../../hooks/useReviews";
 import LoadingSpinner from "../LoadingSpinner";
-import React, { useEffect, useState } from "react";
-import { API_BASE_URL } from "../../config/api";
+import StarRating from "./../common/StarRating";
 
 export default function TestimonialsCarousel() {
-  const [testimonials, setTestimonials] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   // Function to limit words in testimonial text
   const limitWords = (text, limit = 40) => {
     if (!text) return "";
@@ -17,101 +12,62 @@ export default function TestimonialsCarousel() {
     return words.slice(0, limit).join(" ") + "...";
   };
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        setLoading(true);
+  const {
+    data: reviewsData,
+    isLoading: loading,
+    isError,
+  } = usePatientReviews();
 
-        // Fetch reviews and stats in parallel
-        const [reviewsResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/viewer/fetchReviews`),
-        ]);
+  // Memoize the mapping and sorting so it doesn't re-run on every render
+  const { testimonials, stats } = React.useMemo(() => {
+    if (!isError && reviewsData) {
+      const mappedTestimonials = reviewsData.data.map((review) => ({
+        name: review.author || "Anonymous",
+        rating: review.rating || 5,
+        text: review.reviewText || review.review_text || review.text || "",
+        package: "Google Review",
+        review_time: review.reviewTime || review.review_time,
+        id: review.id,
+      }));
 
-        if (!reviewsResponse.ok) {
-          throw new Error("Failed to fetch reviews");
-        }
+      const sorted = mappedTestimonials.sort((a, b) => {
+        const aTextLength = (a.text || "").length;
+        const bTextLength = (b.text || "").length;
+        if (aTextLength !== bTextLength) return bTextLength - aTextLength;
+        if (a.rating !== b.rating) return b.rating - a.rating;
+        return new Date(b.review_time) - new Date(a.review_time);
+      });
 
-        const reviewsData = await reviewsResponse.json();
+      return { testimonials: sorted, stats: reviewsData.stats };
+    }
 
-        if (reviewsData.success) {
-          const statsData = reviewsData.stats;
-          // Map Google Reviews data to testimonials format
-          const mappedTestimonials = reviewsData.data.map((review) => ({
-            name: review.author || "Anonymous",
-            rating: review.rating || 5,
-            text: review.reviewText || review.review_text || review.text || "",
-            package: "Google Review",
-            review_time: review.reviewTime || review.review_time,
-            id: review.id,
-          }));
+    // Fallback static data if API fails or hasn't loaded
+    const fallbackTestimonials = [
+      {
+        name: "Sarah J.",
+        package: "Annual Health Checkup",
+        rating: 5,
+        text: "For the first time, I wasn't intimidated by my lab results. Certus Diagnostics gave me a summary that I could actually understand and use. The lifestyle suggestions were a game-changer.",
+      },
+      {
+        name: "Michael B.",
+        package: "Diabetic Care Package",
+        rating: 5,
+        text: "The report was fantastic. It didn't just show numbers; it explained what they meant for me and suggested probable causes. It felt like a consultation, not just a report.",
+      },
+      {
+        name: "Emily R.",
+        package: "Women's Wellness Panel",
+        rating: 5,
+        text: "Booking was easy, the sample collection was professional, and the report was the clearest I've ever received. Highly recommend for anyone who wants to take control of their health.",
+      },
+    ].sort((a, b) => (b.text || "").length - (a.text || "").length);
 
-          // Sort testimonials to prioritize reviews with more text content
-          // First by text length (descending), then by rating (descending), then by time (descending)
-          const sortedTestimonials = mappedTestimonials.sort((a, b) => {
-            const aTextLength = (a.text || "").length;
-            const bTextLength = (b.text || "").length;
-
-            // Primary sort: Text length (longer reviews first)
-            if (aTextLength !== bTextLength) {
-              return bTextLength - aTextLength;
-            }
-
-            // Secondary sort: Rating (higher ratings first)
-            if (a.rating !== b.rating) {
-              return b.rating - a.rating;
-            }
-
-            // Tertiary sort: Time (newer reviews first)
-            return new Date(b.review_time) - new Date(a.review_time);
-          });
-
-          setTestimonials(sortedTestimonials);
-          setStats(statsData);
-        } else {
-          throw new Error(
-            reviewsData.message || "Failed to load reviews"
-          );
-        }
-      } catch (err) {
-        console.error("Error fetching reviews:", err);
-        setError(err.message);
-
-        // Fallback to static testimonials if API fails
-        const fallbackTestimonials = [
-          {
-            name: "Sarah J.",
-            package: "Annual Health Checkup",
-            rating: 5,
-            text: "For the first time, I wasn't intimidated by my lab results. Certus Diagnostics gave me a summary that I could actually understand and use. The lifestyle suggestions were a game-changer.",
-          },
-          {
-            name: "Michael B.",
-            package: "Diabetic Care Package",
-            rating: 5,
-            text: "The report was fantastic. It didn't just show numbers; it explained what they meant for me and suggested probable causes. It felt like a consultation, not just a report.",
-          },
-          {
-            name: "Emily R.",
-            package: "Women's Wellness Panel",
-            rating: 5,
-            text: "Booking was easy, the sample collection was professional, and the report was the clearest I've ever received. Highly recommend for anyone who wants to take control of their health.",
-          },
-        ];
-
-        // Sort fallback testimonials by text length as well
-        const sortedFallbackTestimonials = fallbackTestimonials.sort((a, b) => {
-          return (b.text || "").length - (a.text || "").length;
-        });
-
-        setTestimonials(sortedFallbackTestimonials);
-        setStats({ average_rating: 5.0, total_reviews: 3 });
-      } finally {
-        setLoading(false);
-      }
+    return {
+      testimonials: fallbackTestimonials,
+      stats: { average_rating: 5.0, total_reviews: 3 },
     };
-
-    fetchReviews();
-  }, []); // Remove testimonials from dependency array to prevent infinite loop
+  }, [reviewsData, isError]);
 
   // We duplicate the testimonials to create a seamless, infinite loop
   // The sorted order (longest text first) is maintained in the duplication
@@ -157,7 +113,7 @@ export default function TestimonialsCarousel() {
               </span>
             </div>
           )}
-          {error && (
+          {isError && (
             <p className="text-yellow-400 text-sm">
               Showing cached reviews (Live reviews temporarily unavailable)
             </p>
@@ -203,7 +159,7 @@ export default function TestimonialsCarousel() {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
-                          }
+                          },
                         )}
                       </p>
                     )}
