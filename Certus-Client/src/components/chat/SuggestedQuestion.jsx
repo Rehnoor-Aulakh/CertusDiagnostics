@@ -9,7 +9,7 @@ const Container = styled.div`
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
   &:hover {
-    background-color: #3b4d6b;
+    background-color: #1d4a97;
   }
 `;
 

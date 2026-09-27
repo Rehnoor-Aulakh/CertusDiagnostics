@@ -33,12 +33,27 @@ const Input = styled.textarea`
   flex: 1;
   resize: none;
   border: none;
-  align-items: center;
   outline: none;
   background: transparent;
   color: white;
   font-size: 15px;
   line-height: 1.5;
+  max-height: 250px;
+  overflow-y: auto;
+  scrollbar-color: #4f8dfd transparent;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #4f8dfd;
+    border-radius: 4px;
+  }
+
   &::placeholder {
     color: #9ca3af;
   }
@@ -196,6 +211,20 @@ export default function ChatInput() {
   const [customReports, setCustomReports] = useState(1);
   const [menuMode, setMenuMode] = useState("OPTIONS");
   const contextMenuRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      if (!userInput) {
+        textarea.style.height = "24px";
+      } else {
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      }
+    }
+  }, [userInput]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -274,8 +303,8 @@ export default function ChatInput() {
       <SuggestedQuestions />
       <InputContainer className="mx-20 mb-10">
         <Input
+          ref={textareaRef}
           rows={1}
-          type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           onKeyDown={(e) => {
