@@ -205,6 +205,7 @@ export default function ChatInput() {
     addMessage,
     setLoading,
     loading,
+    setSuggestedQuestions,
   } = useChat();
   const [selectedOption, setSelectedOption] = useState("LATEST_REPORT");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -281,12 +282,17 @@ export default function ChatInput() {
       }
 
       const data = await response.json();
+      console.log(data);
       addMessage({
         role: "assistant",
         content: data.answer,
         references: data.references || [],
         suggestedQuestions: data.suggestedQuestions || [],
       });
+
+      if (data.suggestedQuestions && data.suggestedQuestions.length > 0) {
+        setSuggestedQuestions(data.suggestedQuestions);
+      }
     } catch (error) {
       addMessage({
         role: "assistant",

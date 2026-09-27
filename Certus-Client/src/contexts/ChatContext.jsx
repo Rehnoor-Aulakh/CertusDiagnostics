@@ -3,13 +3,13 @@ import React, { createContext, useContext, useState } from "react";
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
-  const suggestedQuestions = [
+  const [suggestedQuestions, setSuggestedQuestions] = useState([
     "Compare my last two reports",
     "What are the key findings in my latest report?",
     "Summarize the trends in my reports over the last 6 months",
     "What are the most common issues found in my reports?",
     "Suggest diet plan based on my latest report",
-  ];
+  ]);
   const [messages, setMessages] = useState([]);
   const MIN_WIDTH = 600;
   const [width, setWidth] = useState(0);
@@ -59,6 +59,7 @@ export const ChatProvider = ({ children }) => {
     addMessage,
     clearChat,
     suggestedQuestions,
+    setSuggestedQuestions,
 
     width,
     setWidth,

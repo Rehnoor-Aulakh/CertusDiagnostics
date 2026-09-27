@@ -1,5 +1,7 @@
 package com.rehnoor.certusbackend.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rehnoor.certusbackend.dto.chatbot.ChatRequestDTO;
 import com.rehnoor.certusbackend.dto.chatbot.ChatResponseDTO;
 import com.rehnoor.certusbackend.prompt.ChatPromptBuilder;
@@ -13,6 +15,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,6 +29,9 @@ public class ChatService {
 
     @Autowired
     private VectorStore vectorStore;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
 
@@ -53,9 +59,34 @@ public class ChatService {
                 .call()
                 .content();
 
+        String answer = response;
+        List<String> suggestedQuestions = new ArrayList<>();
+
+        try {
+            int startIndex = response.indexOf('{');
+            int endIndex = response.lastIndexOf('}');
+            if (startIndex != -1 && endIndex != -1 && startIndex <= endIndex) {
+                String jsonStr = response.substring(startIndex, endIndex + 1);
+                JsonNode jsonResponse = objectMapper.readTree(jsonStr);
+
+                if (jsonResponse.has("answer")) {
+                    answer = jsonResponse.get("answer").asText();
+                }
+
+                if (jsonResponse.has("suggestedQuestions") && jsonResponse.get("suggestedQuestions").isArray()) {
+                    for (JsonNode node : jsonResponse.get("suggestedQuestions")) {
+                        suggestedQuestions.add(node.asText());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to parse JSON response from LLM: " + e.getMessage());
+        }
+
         return ChatResponseDTO.builder()
                 .conversationId(request.getConversationId())
-                .answer(response)
+                .answer(answer)
+                .suggestedQuestions(suggestedQuestions)
                 .build();
     }
 }
