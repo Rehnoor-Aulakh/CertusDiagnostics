@@ -16,6 +16,19 @@ import ContactUs from "./pages/ContactUs";
 import Dashboard from "./pages/Dashboard";
 import { ChatProvider } from "./contexts/ChatContext";
 import Chatbot from "./components/chat/Chatbot";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+      gcTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function App() {
   const { isLoggedIn } = useAuth();
@@ -37,11 +50,13 @@ export default function App() {
   };
 
   return (
-    <ChatProvider>
-      <Router>
-        {/* This style tag injects the keyframes for the marquee animation */}
-        <style>
-          {`
+    <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
+      <ChatProvider>
+        <Router>
+          {/* This style tag injects the keyframes for the marquee animation */}
+          <style>
+            {`
                     @keyframes marquee {
                       0% { transform: translateX(0%); }
                       /* This animates the container to the left by 50% of its width, which is the length of the original (non-duplicated) content */
@@ -56,34 +71,35 @@ export default function App() {
                           animation-play-state: paused;
                           }
                           `}
-        </style>
-        <div
-          style={{
-            backgroundColor: "#2A3A5A",
-            fontFamily: "'Inter', sans-serif",
-            color: "#E0E0E0",
-          }}
-          className="antialiased min-h-screen flex flex-col overflow-x-hidden"
-        >
-          {/* Login Modal */}
-          {showLoginModal && <LoginModal onClose={handleCloseModal} />}
-          <Toaster position="top-center" />
-          <Header />
-          <main className="flex-1" style={{ marginTop: "80px" }}>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/book-a-test" element={<BookATest />} />
-              <Route path="/your-reports" element={<YourReports />} />
-              <Route path="/health-history" element={<HealthHistory />} />
-              <Route path="/sign-in" element={<SignIn />} />
-              <Route path="/contact-us" element={<ContactUs />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-            </Routes>
-          </main>
-          <Chatbot />
-          <Footer />
-        </div>
-      </Router>
-    </ChatProvider>
+          </style>
+          <div
+            style={{
+              backgroundColor: "#2A3A5A",
+              fontFamily: "'Inter', sans-serif",
+              color: "#E0E0E0",
+            }}
+            className="antialiased min-h-screen flex flex-col overflow-x-hidden"
+          >
+            {/* Login Modal */}
+            {showLoginModal && <LoginModal onClose={handleCloseModal} />}
+            <Toaster position="top-center" />
+            <Header />
+            <main className="flex-1" style={{ marginTop: "80px" }}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/book-a-test" element={<BookATest />} />
+                <Route path="/your-reports" element={<YourReports />} />
+                <Route path="/health-history" element={<HealthHistory />} />
+                <Route path="/sign-in" element={<SignIn />} />
+                <Route path="/contact-us" element={<ContactUs />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Routes>
+            </main>
+            <Chatbot />
+            <Footer />
+          </div>
+        </Router>
+      </ChatProvider>
+    </QueryClientProvider>
   );
 }

@@ -1,10 +1,19 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { API_BASE_URL } from "../config/api";
+import {
+  AlertTriangle,
+  ArrowUpDown,
+  Filter,
+  RefreshCw,
+  Search,
+  X,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
 import ClientCategorySection from "../components/packages/ClientCategorySection";
 import ClientPackageCard from "../components/packages/ClientPackageCard";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { Search, RefreshCw, AlertTriangle, Filter, ArrowUpDown, X } from "lucide-react";
-
+import {
+  useDiagnosticPackages,
+  usePackageCategories,
+} from "../hooks/usePackages";
 /**
  * BookATest Page Component
  * Patient-facing diagnostic test and package catalog for Certus Diagnostics Client App.
@@ -12,77 +21,47 @@ import { Search, RefreshCw, AlertTriangle, Filter, ArrowUpDown, X } from "lucide
  * Fetches categories and packages dynamically, enabling live search, category filtering, and sorting.
  */
 export default function BookATest() {
-  const [categories, setCategories] = useState([]);
-  const [packages, setPackages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // 1. Fetching the data using our custom React Query hooks
+  const {
+    data: rawCategories = [],
+    isLoading: loadingCats,
+    error: errorCats,
+    refetch: refetchCats,
+  } = usePackageCategories();
+
+  const {
+    data: rawPackages = [],
+    isLoading: loadingPkgs,
+    error: errorPkgs,
+    refetch: refetchPkgs,
+  } = useDiagnosticPackages();
+
+  // 2. combining error and loading states
+  const loading = loadingCats || loadingPkgs;
+  const error = errorCats?.message || errorPkgs?.message;
+
+  // 3. sort the data
+  const categories = useMemo(() => {
+    return [...rawCategories].sort(
+      (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0),
+    );
+  }, [rawCategories]);
+
+  const packages = useMemo(() => {
+    return [...rawPackages].sort(
+      (a, b) => (a.displayOrder || 0) - (b.displayOrder || 0),
+    );
+  }, [rawPackages]);
+
+  const refetchData = () => {
+    refetchCats();
+    refetchPkgs();
+  };
 
   // Filter & Search States
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("ALL"); // "ALL", or categoryId, or "UNCATEGORIZED"
-  const [sortBy, setSortBy] = useState("default"); // "default" | "price_asc" | "price_desc" | "tests_desc"
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // 1. Fetch Categories
-      let catsData = { success: false, data: [] };
-      try {
-        const res = await fetch(`${API_BASE_URL}/viewer/package-categories`);
-        if (res.ok) catsData = await res.json();
-      } catch (e) {
-        console.warn("Viewer categories fetch failed, trying fallback...", e);
-      }
-      if (!catsData.success) {
-        try {
-          const res = await fetch(`${API_BASE_URL}/package-categories`);
-          if (res.ok) catsData = await res.json();
-        } catch (e) {
-          console.warn("Fallback categories fetch failed", e);
-        }
-      }
-
-      // 2. Fetch Packages
-      let pkgsData = { success: false, data: [] };
-      try {
-        const res = await fetch(`${API_BASE_URL}/viewer/packages`);
-        if (res.ok) pkgsData = await res.json();
-      } catch (e) {
-        console.warn("Viewer packages fetch failed, trying fallback...", e);
-      }
-      if (!pkgsData.success) {
-        try {
-          const res = await fetch(`${API_BASE_URL}/packages`);
-          if (res.ok) pkgsData = await res.json();
-        } catch (e) {
-          console.warn("Fallback packages fetch failed", e);
-        }
-      }
-
-      if (catsData.success || pkgsData.success) {
-        const fetchedCats = catsData.data || [];
-        const fetchedPkgs = pkgsData.data || [];
-        
-        fetchedCats.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-        fetchedPkgs.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-
-        setCategories(fetchedCats);
-        setPackages(fetchedPkgs);
-      } else {
-        throw new Error("Unable to load diagnostic packages at the moment.");
-      }
-    } catch (err) {
-      console.error("Error loading book a test data:", err);
-      setError(err.message || "Failed to load diagnostic packages. Please check your network and retry.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [sortBy, setSortBy] = useState("default");
 
   // Map of categoryId -> Category Object
   const categoryMap = useMemo(() => {
@@ -102,8 +81,11 @@ export default function BookATest() {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter((pkg) => {
         const nameMatch = pkg.name && pkg.name.toLowerCase().includes(q);
-        const catObj = pkg.categoryId ? categoryMap.get(String(pkg.categoryId)) : null;
-        const catMatch = catObj && catObj.name && catObj.name.toLowerCase().includes(q);
+        const catObj = pkg.categoryId
+          ? categoryMap.get(String(pkg.categoryId))
+          : null;
+        const catMatch =
+          catObj && catObj.name && catObj.name.toLowerCase().includes(q);
         return nameMatch || catMatch;
       });
     }
@@ -111,9 +93,13 @@ export default function BookATest() {
     // 2. Category Filter
     if (selectedCategory !== "ALL") {
       if (selectedCategory === "UNCATEGORIZED") {
-        result = result.filter((pkg) => !pkg.categoryId || !categoryMap.has(String(pkg.categoryId)));
+        result = result.filter(
+          (pkg) => !pkg.categoryId || !categoryMap.has(String(pkg.categoryId)),
+        );
       } else {
-        result = result.filter((pkg) => String(pkg.categoryId) === String(selectedCategory));
+        result = result.filter(
+          (pkg) => String(pkg.categoryId) === String(selectedCategory),
+        );
       }
     }
 
@@ -123,7 +109,10 @@ export default function BookATest() {
     } else if (sortBy === "price_desc") {
       result.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
     } else if (sortBy === "tests_desc") {
-      result.sort((a, b) => (Number(b.numberOfTests) || 0) - (Number(a.numberOfTests) || 0));
+      result.sort(
+        (a, b) =>
+          (Number(b.numberOfTests) || 0) - (Number(a.numberOfTests) || 0),
+      );
     } else {
       result.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
     }
@@ -140,23 +129,27 @@ export default function BookATest() {
 
     categories.forEach((cat) => {
       const catIdStr = String(cat.categoryId || cat.id);
-      const pkgsInCat = filteredPackages.filter((pkg) => String(pkg.categoryId) === catIdStr);
+      const pkgsInCat = filteredPackages.filter(
+        (pkg) => String(pkg.categoryId) === catIdStr,
+      );
       if (pkgsInCat.length > 0) {
         sections.push({
           key: `cat-${catIdStr}`,
           category: cat,
-          packages: pkgsInCat
+          packages: pkgsInCat,
         });
         pkgsInCat.forEach((p) => usedPackageIds.add(p.packageId || p.id));
       }
     });
 
-    const uncategorizedPkgs = filteredPackages.filter((pkg) => !usedPackageIds.has(pkg.packageId || pkg.id));
+    const uncategorizedPkgs = filteredPackages.filter(
+      (pkg) => !usedPackageIds.has(pkg.packageId || pkg.id),
+    );
     if (uncategorizedPkgs.length > 0) {
       sections.push({
         key: "cat-uncategorized",
         category: { name: "General Screenings & Specialized Tests" },
-        packages: uncategorizedPkgs
+        packages: uncategorizedPkgs,
       });
     }
 
@@ -166,14 +159,15 @@ export default function BookATest() {
   return (
     <div className="min-h-screen py-12 px-4 md:px-6">
       <div className="container mx-auto max-w-7xl">
-        
         {/* Hero Header Section - Clean Homepage Aesthetic */}
         <div className="text-center max-w-3xl mx-auto mb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Book Diagnostic Tests & Packages
           </h1>
           <p className="text-base md:text-lg text-gray-300">
-            Explore our comprehensive range of health checkup packages and screenings. Select a package to view detailed test parameters or schedule an appointment instantly.
+            Explore our comprehensive range of health checkup packages and
+            screenings. Select a package to view detailed test parameters or
+            schedule an appointment instantly.
           </p>
         </div>
 
@@ -204,16 +198,26 @@ export default function BookATest() {
             {/* Sort Dropdown */}
             <div className="w-full md:w-auto flex items-center gap-2 bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 shrink-0">
               <ArrowUpDown className="w-4 h-4 text-blue-400 shrink-0" />
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider shrink-0">Sort By:</span>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider shrink-0">
+                Sort By:
+              </span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="bg-transparent text-white text-sm font-medium focus:outline-none cursor-pointer py-0.5"
               >
-                <option value="default" className="bg-slate-900 text-white">Default Order</option>
-                <option value="price_asc" className="bg-slate-900 text-white">Price: Low to High</option>
-                <option value="price_desc" className="bg-slate-900 text-white">Price: High to Low</option>
-                <option value="tests_desc" className="bg-slate-900 text-white">Most Tests Included</option>
+                <option value="default" className="bg-slate-900 text-white">
+                  Default Order
+                </option>
+                <option value="price_asc" className="bg-slate-900 text-white">
+                  Price: Low to High
+                </option>
+                <option value="price_desc" className="bg-slate-900 text-white">
+                  Price: High to Low
+                </option>
+                <option value="tests_desc" className="bg-slate-900 text-white">
+                  Most Tests Included
+                </option>
               </select>
             </div>
           </div>
@@ -233,7 +237,9 @@ export default function BookATest() {
 
             {categories.map((cat) => {
               const catIdStr = String(cat.categoryId || cat.id);
-              const count = packages.filter((p) => String(p.categoryId) === catIdStr).length;
+              const count = packages.filter(
+                (p) => String(p.categoryId) === catIdStr,
+              ).length;
               if (count === 0 && selectedCategory !== catIdStr) return null;
 
               return (
@@ -247,14 +253,18 @@ export default function BookATest() {
                   }`}
                 >
                   <span>{cat.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${selectedCategory === catIdStr ? "bg-white/20 text-white" : "bg-slate-800 text-gray-400"}`}>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${selectedCategory === catIdStr ? "bg-white/20 text-white" : "bg-slate-800 text-gray-400"}`}
+                  >
                     {count}
                   </span>
                 </button>
               );
             })}
 
-            {packages.some((p) => !p.categoryId || !categoryMap.has(String(p.categoryId))) && (
+            {packages.some(
+              (p) => !p.categoryId || !categoryMap.has(String(p.categoryId)),
+            ) && (
               <button
                 onClick={() => setSelectedCategory("UNCATEGORIZED")}
                 className={`px-5 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap transition-colors flex items-center gap-2 shrink-0 ${
@@ -265,7 +275,12 @@ export default function BookATest() {
               >
                 <span>Other Screenings</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-gray-400">
-                  {packages.filter((p) => !p.categoryId || !categoryMap.has(String(p.categoryId))).length}
+                  {
+                    packages.filter(
+                      (p) =>
+                        !p.categoryId || !categoryMap.has(String(p.categoryId)),
+                    ).length
+                  }
                 </span>
               </button>
             )}
@@ -275,7 +290,11 @@ export default function BookATest() {
         {/* Content Section */}
         {loading ? (
           <div className="py-16 text-center space-y-6">
-            <LoadingSpinner size="large" color="white" text="Loading diagnostic packages..." />
+            <LoadingSpinner
+              size="large"
+              color="white"
+              text="Loading diagnostic packages..."
+            />
             <div className="animate-pulse space-y-6 max-w-5xl mx-auto pt-4">
               <div className="h-48 bg-slate-800/60 rounded-2xl border border-slate-700/60"></div>
               <div className="h-48 bg-slate-800/60 rounded-2xl border border-slate-700/60"></div>
@@ -286,10 +305,12 @@ export default function BookATest() {
             <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-white">Could Not Load Packages</h3>
+            <h3 className="text-xl font-bold text-white">
+              Could Not Load Packages
+            </h3>
             <p className="text-gray-300 text-sm">{error}</p>
             <button
-              onClick={fetchData}
+              onClick={refetchData}
               className="mt-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-colors inline-flex items-center gap-2 text-sm"
             >
               <RefreshCw className="w-4 h-4" />
@@ -301,9 +322,12 @@ export default function BookATest() {
             <div className="w-14 h-14 rounded-xl bg-slate-700/60 text-gray-400 flex items-center justify-center mx-auto">
               <Filter className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold text-white">No Diagnostic Packages Found</h3>
+            <h3 className="text-xl font-bold text-white">
+              No Diagnostic Packages Found
+            </h3>
             <p className="text-gray-300 text-sm">
-              We couldn't find any packages matching your search <strong className="text-white">"{searchQuery}"</strong>.
+              We couldn't find any packages matching your search{" "}
+              <strong className="text-white">"{searchQuery}"</strong>.
             </p>
             <button
               onClick={() => {
@@ -331,14 +355,20 @@ export default function BookATest() {
                 <div className="flex items-center justify-between border-b border-slate-700 pb-4">
                   <div>
                     <h2 className="text-2xl md:text-3xl font-bold text-white">
-                      {selectedCategory === "UNCATEGORIZED" 
+                      {selectedCategory === "UNCATEGORIZED"
                         ? "General Screenings & Specialized Tests"
-                        : selectedCategory !== "ALL" && categoryMap.get(String(selectedCategory))
+                        : selectedCategory !== "ALL" &&
+                            categoryMap.get(String(selectedCategory))
                           ? categoryMap.get(String(selectedCategory)).name
                           : "Search Results"}
                     </h2>
                     <p className="text-sm text-gray-400 mt-1">
-                      Showing <strong className="text-white">{filteredPackages.length}</strong> available diagnostic {filteredPackages.length === 1 ? "package" : "packages"}
+                      Showing{" "}
+                      <strong className="text-white">
+                        {filteredPackages.length}
+                      </strong>{" "}
+                      available diagnostic{" "}
+                      {filteredPackages.length === 1 ? "package" : "packages"}
                     </p>
                   </div>
                   {selectedCategory !== "ALL" && (
@@ -353,9 +383,10 @@ export default function BookATest() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-2">
                   {filteredPackages.map((pkg) => {
-                    const catName = pkg.categoryId && categoryMap.get(String(pkg.categoryId))
-                      ? categoryMap.get(String(pkg.categoryId)).name
-                      : null;
+                    const catName =
+                      pkg.categoryId && categoryMap.get(String(pkg.categoryId))
+                        ? categoryMap.get(String(pkg.categoryId)).name
+                        : null;
                     return (
                       <ClientPackageCard
                         key={pkg.packageId || pkg.id}
@@ -369,7 +400,6 @@ export default function BookATest() {
             )}
           </div>
         )}
-
       </div>
     </div>
   );

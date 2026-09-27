@@ -20,7 +20,6 @@ export default function YourReports() {
   }, [isLoggedIn, loading, navigate]);
 
   useEffect(() => {
-    console.log("History useEffect executed");
     const fetchHistory = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/patient/history`, {
