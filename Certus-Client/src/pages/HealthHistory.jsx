@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { Activity, AlertTriangle, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, TrendingUp, TrendingDown, Activity, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
-import { API_BASE_URL } from "../config/api";
+import { useAuth } from "../contexts/AuthContext";
 
-import HealthSummaryCard from "../components/history/HealthSummaryCard";
+import { usePatientHistory } from "../hooks/usePatient";
+import HealthAccordion from "../components/history/HealthAccordion";
 import HealthFilterBar from "../components/history/HealthFilterBar";
 import HealthGraphCarousel from "../components/history/HealthGraphCarousel";
-import HealthAccordion from "../components/history/HealthAccordion";
+import HealthSummaryCard from "../components/history/HealthSummaryCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function HealthHistory() {
   const { user, isLoggedIn, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-
-  const [historyData, setHistoryData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const [timeFilter, setTimeFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,36 +24,14 @@ export default function HealthHistory() {
     }
   }, [isLoggedIn, authLoading, navigate]);
 
-  const fetchHistory = useCallback(async () => {
-    if (!user?.token) return;
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(`${API_BASE_URL}/patient/history`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+  const {
+    data: historyData,
+    isLoading: loading,
+    error: fetchError,
+    refetch,
+  } = usePatientHistory(user?.token);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch history");
-      }
-
-      const data = await response.json();
-      setHistoryData(data);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load your health history.");
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchHistory();
-    }
-  }, [isLoggedIn, fetchHistory]);
+  const error = fetchError ? "Unable to load your health history." : null;
 
   const filteredTests = useMemo(() => {
     if (!historyData?.graphs) return [];
@@ -69,10 +43,14 @@ export default function HealthHistory() {
         const now = new Date();
         let cutoffDate = new Date();
         if (timeFilter === "3 Months") cutoffDate.setMonth(now.getMonth() - 3);
-        else if (timeFilter === "6 Months") cutoffDate.setMonth(now.getMonth() - 6);
-        else if (timeFilter === "1 Year") cutoffDate.setFullYear(now.getFullYear() - 1);
+        else if (timeFilter === "6 Months")
+          cutoffDate.setMonth(now.getMonth() - 6);
+        else if (timeFilter === "1 Year")
+          cutoffDate.setFullYear(now.getFullYear() - 1);
 
-        filteredTimeline = test.timeline.filter((point) => new Date(point.date) >= cutoffDate);
+        filteredTimeline = test.timeline.filter(
+          (point) => new Date(point.date) >= cutoffDate,
+        );
       }
       return { ...test, timeline: filteredTimeline };
     });
@@ -81,10 +59,12 @@ export default function HealthHistory() {
     if (statusFilter !== "All") {
       tests = tests.filter((test) => {
         if (statusFilter === "Worsening") return test.status === "WORSENING";
-        if (statusFilter === "Needs Attention") return test.status === "NEEDS_ATTENTION";
+        if (statusFilter === "Needs Attention")
+          return test.status === "NEEDS_ATTENTION";
         if (statusFilter === "Improving") return test.status === "IMPROVING";
         if (statusFilter === "Recovered") return test.status === "RECOVERED";
-        if (statusFilter === "Stable Normal") return test.status === "STABLE_NORMAL";
+        if (statusFilter === "Stable Normal")
+          return test.status === "STABLE_NORMAL";
         if (statusFilter === "Abnormal") return test.status === "ABNORMAL";
         return true;
       });
@@ -96,7 +76,7 @@ export default function HealthHistory() {
       tests = tests.filter(
         (test) =>
           (test.testName && test.testName.toLowerCase().includes(q)) ||
-          (test.category && test.category.toLowerCase().includes(q))
+          (test.category && test.category.toLowerCase().includes(q)),
       );
     }
 
@@ -133,7 +113,7 @@ export default function HealthHistory() {
             <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">{error}</h2>
             <button
-              onClick={fetchHistory}
+              onClick={refetch}
               className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
               Retry
@@ -144,7 +124,10 @@ export default function HealthHistory() {
     );
   }
 
-  if (!historyData || (historyData.graphs.length === 0 && !historyData.summary)) {
+  if (
+    !historyData ||
+    (historyData.graphs.length === 0 && !historyData.summary)
+  ) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
         {/* Subtle Pattern Overlay */}
@@ -153,8 +136,12 @@ export default function HealthHistory() {
           <h1 className="text-3xl font-bold mb-6 text-white">Health History</h1>
           <div className="bg-white/5 rounded-2xl p-12 text-center glass-card flex flex-col items-center">
             <Activity className="w-16 h-16 text-gray-400 mx-auto mb-4 opacity-50" />
-            <h2 className="text-2xl font-bold text-white mb-2">No health history available yet.</h2>
-            <p className="text-gray-400">Upload more reports to begin tracking trends.</p>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              No health history available yet.
+            </h2>
+            <p className="text-gray-400">
+              Upload more reports to begin tracking trends.
+            </p>
           </div>
         </div>
       </div>
@@ -167,7 +154,9 @@ export default function HealthHistory() {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICAgICAgICA8cGF0aCBkPSJNIDIwIDAgTCAwIDAgMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDIpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgICA8L3BhdHRlcm4+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIiAvPgogICAgPC9zdmc+')] opacity-30"></div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl space-y-8">
-        <h1 className="text-3xl font-bold text-white">Health History Dashboard</h1>
+        <h1 className="text-3xl font-bold text-white">
+          Health History Dashboard
+        </h1>
 
         {historyData.summary && (
           <HealthSummaryCard summary={historyData.summary} />
@@ -185,12 +174,19 @@ export default function HealthHistory() {
         {filteredTests.length === 0 ? (
           <div className="bg-white/5 rounded-2xl p-12 text-center glass-card mt-8 flex flex-col items-center">
             <Search className="w-12 h-12 text-gray-400 mx-auto mb-4 opacity-50" />
-            <h2 className="text-xl font-semibold text-white mb-2">No matching tests found.</h2>
-            <p className="text-gray-400">Try adjusting your filters or search query.</p>
+            <h2 className="text-xl font-semibold text-white mb-2">
+              No matching tests found.
+            </h2>
+            <p className="text-gray-400">
+              Try adjusting your filters or search query.
+            </p>
           </div>
         ) : (
           <>
-            <HealthGraphCarousel tests={filteredTests} timeFilter={timeFilter} />
+            <HealthGraphCarousel
+              tests={filteredTests}
+              timeFilter={timeFilter}
+            />
             <HealthAccordion tests={filteredTests} />
           </>
         )}

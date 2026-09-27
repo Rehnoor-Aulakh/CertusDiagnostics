@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { API_BASE_URL } from "../config/api";
 import ReportDetails from "../components/ReportDetails";
+import { useAuth } from "../contexts/AuthContext";
 import { usePatientReports } from "../hooks/usePatient";
 
 export default function YourReports() {
