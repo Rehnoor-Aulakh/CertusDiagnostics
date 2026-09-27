@@ -21,6 +21,7 @@ export default function ResizeHandle() {
   const [isResizing, setIsResizing] = useState(false);
 
   const handleMouseDown = (e) => {
+    e.preventDefault();
     const MAX_WIDTH = window.innerWidth * 0.8;
     const startX = e.clientX;
     const initialWidth = width;

@@ -1,6 +1,7 @@
 import { useChat } from "../../contexts/ChatContext";
 import styled from "styled-components";
 import TypingIndicator from "./TypingIndicator";
+import ReactMarkdown from "react-markdown";
 
 const MessageContainer = styled.div`
   display: flex;
@@ -27,7 +28,11 @@ export default function ChatMessage({ message }) {
     <MessageContainer role={message.role}>
       <Bubble>
         {message.role === "assistant" && <CertusLabel>Certus AI:</CertusLabel>}
-        {message.content}
+        {message.role === "assistant" ? (
+          <ReactMarkdown>{message.content}</ReactMarkdown>
+        ) : (
+          message.content
+        )}
       </Bubble>
     </MessageContainer>
   );

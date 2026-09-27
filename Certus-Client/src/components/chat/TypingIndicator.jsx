@@ -45,7 +45,7 @@ const DotsContainer = styled.div`
 export default function TypingIndicator() {
   return (
     <MessageContainer>
-      <Label>Certus AI: Typing Indicator</Label>
+      <Label>Certus AI: </Label>
       <DotsContainer>
         <Dot delay={0} />
         <Dot delay={0.2} />
