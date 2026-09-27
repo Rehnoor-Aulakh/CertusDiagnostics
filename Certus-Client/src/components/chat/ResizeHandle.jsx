@@ -14,6 +14,9 @@ const Handle = styled.div`
   &:hover {
     background: #3b82f6;
   }
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 export default function ResizeHandle() {

@@ -4,11 +4,13 @@ import { useAuth } from "../../contexts/AuthContext";
 import Logo from "../../components/Logo";
 import { Bot } from "lucide-react";
 import FloatingButton from "../../components/chat/FloatingButton";
+import { useChat } from "../../contexts/ChatContext";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
+  const { toggleChat } = useChat();
   const navigate = useNavigate();
 
   // Function to get a more reliable Google profile picture URL
@@ -70,6 +72,14 @@ export default function Header() {
             <Link to="/" className="flex items-center flex-shrink-0">
               <Logo />
             </Link>
+          </div>
+          <div className="md:hidden flex items-center pr-2">
+            <button
+              onClick={toggleChat}
+              className="text-gray-300 hover:text-white focus:outline-none"
+            >
+              <Bot size={28} />
+            </button>
           </div>
           <div className="hidden md:flex items-center space-x-3 lg:space-x-6 xl:space-x-8 whitespace-nowrap flex-shrink-0">
             <Link

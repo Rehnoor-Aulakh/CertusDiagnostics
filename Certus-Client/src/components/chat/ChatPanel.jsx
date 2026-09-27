@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import styled from "styled-components";
 import { useChat } from "../../contexts/ChatContext";
 import ChatHeader from "./ChatWelcome";
@@ -18,11 +19,22 @@ const Panel = styled.div`
   top: 80px;
   height: calc(100vh - 80px);
   overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: auto;
+
+  @media (max-width: 768px) {
+    top: 64px;
+    height: calc(100vh - 64px);
+    width: ${({ isOpen }) => (isOpen ? "100vw" : "0")} !important;
+    left: ${({ isOpen }) => (isOpen ? "0" : "100vw")};
+  }
 `;
 
 const MessagesContainer = styled.div`
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: auto;
   /* Add padding bottom to account for the height of the fixed input at the bottom */
   padding-bottom: 150px;
   display: flex;
@@ -34,6 +46,31 @@ const MessagesContainer = styled.div`
 export default function ChatPanel() {
   const { isOpen, width, messages } = useChat();
   const isWelcome = messages.length === 0;
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (isOpen && window.innerWidth <= 768) {
+        document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.touchAction = "none";
+      } else {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+        document.body.style.touchAction = "";
+      }
+    };
+
+    handleResize(); // Check initially
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, [isOpen]);
+
   return (
     <Panel isOpen={isOpen} width={width}>
       <MessagesContainer centerContent={isWelcome} className="mb-20">
