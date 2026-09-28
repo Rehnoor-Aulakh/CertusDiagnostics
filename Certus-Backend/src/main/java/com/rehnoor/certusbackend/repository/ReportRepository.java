@@ -2,12 +2,14 @@ package com.rehnoor.certusbackend.repository;
 
 import com.rehnoor.certusbackend.model.Patient;
 import com.rehnoor.certusbackend.model.Report;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Repository
@@ -56,6 +58,30 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "ORDER BY r.report_date DESC LIMIT 5", nativeQuery = true)
     List<Object[]> findRecentTestsNative();
 
+    // Fetch reports by count for chatbot
+    @Query("""
+    SELECT r
+    FROM Report r
+    WHERE r.patientId.patientId = :patientId
+    ORDER BY r.reportDate DESC
+    """)
+    List<Report> findLatestReportsByPatientId(
+            @Param("patientId") Long patientId,
+            Pageable pageable
+    );
+
+    // Fetch reports by date for chatbot
+    @Query("""
+    SELECT r
+    FROM Report r
+    WHERE r.patientId.patientId = :patientId
+      AND r.reportDate >= :startDate
+    ORDER BY r.reportDate ASC
+    """)
+    List<Report> findReportsFromDateByPatientId(
+            @Param("patientId") Long patientId,
+            @Param("startDate") ZonedDateTime startDate
+    );
 
     List<Report> findByPatientIdOrderByReportDateDesc(Patient patient);
 

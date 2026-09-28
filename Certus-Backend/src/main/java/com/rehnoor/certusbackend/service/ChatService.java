@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rehnoor.certusbackend.dto.chatbot.ChatRequestDTO;
 import com.rehnoor.certusbackend.dto.chatbot.ChatResponseDTO;
 import com.rehnoor.certusbackend.prompt.ChatPromptBuilder;
+import com.rehnoor.certusbackend.service.rag.ChatReportTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ChatService {
@@ -32,6 +34,9 @@ public class ChatService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private ChatReportTools chatReportTools;
 
     ChatMemory chatMemory = MessageWindowChatMemory.builder().build();
 
@@ -49,6 +54,8 @@ public class ChatService {
                 .prompt()
                 .user(request.getMessage())
                 .system(systemText)
+                .tools(chatReportTools)
+//                .toolContext(Map.of("patientId", ))
                 .advisors(a -> a
                         .advisors(
                                 MessageChatMemoryAdvisor.builder(chatMemory)
