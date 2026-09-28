@@ -2,6 +2,7 @@ package com.rehnoor.certusbackend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rehnoor.certusbackend.config.security.SecurityUser;
 import com.rehnoor.certusbackend.dto.chatbot.ChatRequestDTO;
 import com.rehnoor.certusbackend.dto.chatbot.ChatResponseDTO;
 import com.rehnoor.certusbackend.prompt.ChatPromptBuilder;
@@ -14,6 +15,8 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -47,6 +50,11 @@ public class ChatService {
                 SearchRequest.builder().query(request.getMessage()).topK(5).build()
         );
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+
+        Long patientId = securityUser.getPatientId();
+
         String context = promptBuilder.buildContextString(similarDocuments);
         String systemText = promptBuilder.systemPrompt() + "\n\n" + context;
 
@@ -55,7 +63,7 @@ public class ChatService {
                 .user(request.getMessage())
                 .system(systemText)
                 .tools(chatReportTools)
-//                .toolContext(Map.of("patientId", ))
+                .toolContext(Map.of("patientId", patientId))
                 .advisors(a -> a
                         .advisors(
                                 MessageChatMemoryAdvisor.builder(chatMemory)

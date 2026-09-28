@@ -21,6 +21,19 @@ const Panel = styled.div`
   overflow: hidden;
   overscroll-behavior: contain;
   touch-action: auto;
+  scrollbar-color: #4f8dfd transparent;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #4f8dfd;
+    border-radius: 4px;
+  }
 
   @media (max-width: 768px) {
     top: 64px;

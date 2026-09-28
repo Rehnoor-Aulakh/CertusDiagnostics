@@ -176,7 +176,7 @@ public class AuthController {
                     return ResponseEntity.ok(pendingResponse);
                 }
                 // SCENERIO 3: Approved Admin. Generate full session application credentials
-                SecurityUser userPrincipal = new SecurityUser(admin.getEmail(), "", "ROLE_ADMIN");
+                SecurityUser userPrincipal = new SecurityUser(null, admin.getEmail(), "", "ROLE_ADMIN");
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userPrincipal, null, userPrincipal.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -235,7 +235,7 @@ public class AuthController {
                 }
 
                 // Establish Spring Security Context for Patient
-                SecurityUser userPrincipal = new SecurityUser(patient.getEmail(), "", "ROLE_PATIENT");
+                SecurityUser userPrincipal = new SecurityUser(patient.getPatientId(), patient.getEmail(), "", "ROLE_PATIENT");
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userPrincipal, null, userPrincipal.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);

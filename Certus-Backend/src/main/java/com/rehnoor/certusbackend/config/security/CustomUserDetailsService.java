@@ -24,13 +24,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         var adminOpt = adminRepository.findByEmail(email);
         if(adminOpt.isPresent()){
             Admin admin = adminOpt.get();
-            return new SecurityUser(admin.getEmail(), admin.getPassword(), "ROLE_ADMIN");
+            return new SecurityUser(null, admin.getEmail(), admin.getPassword(), "ROLE_ADMIN");
         }
 
         var patientOpt = patientRepository.findByEmail(email);
         if(patientOpt.isPresent()){
             Patient patient = patientOpt.get();
-            return new SecurityUser(patient.getEmail(), patient.getPassword(), "ROLE_PATIENT");
+            return new SecurityUser(patient.getPatientId(), patient.getEmail(), patient.getPassword(), "ROLE_PATIENT");
         }
         throw new UsernameNotFoundException("Identity credentials not found for email: "+email);
     }
@@ -40,13 +40,13 @@ public class CustomUserDetailsService implements UserDetailsService {
             var adminOpt = adminRepository.findByEmail(email);
             if(adminOpt.isPresent()){
                 Admin admin = adminOpt.get();
-                return new SecurityUser(admin.getEmail(), admin.getPassword(), "ROLE_ADMIN");
+                return new SecurityUser(null, admin.getEmail(), admin.getPassword(), "ROLE_ADMIN");
             }
         } else if ("ROLE_PATIENT".equals(role)) {
             var patientOpt = patientRepository.findByEmail(email);
             if(patientOpt.isPresent()){
                 Patient patient = patientOpt.get();
-                return new SecurityUser(patient.getEmail(), patient.getPassword(), "ROLE_PATIENT");
+                return new SecurityUser(patient.getPatientId(), patient.getEmail(), patient.getPassword(), "ROLE_PATIENT");
             }
         }
         // Fallback
